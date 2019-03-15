@@ -140,12 +140,6 @@ class UserInterface extends VBox {
                 textField.setText("");
                 BoardPanel.setUpCheat();
             }
-
-            if (textField.getText().equalsIgnoreCase("test")) {
-                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                moveTo = GameLogic.findMoveTo(ownerCheckers);
-                displayLegalMoves(ownerCheckers, moveTo);
-            }
         });
     }
 
@@ -210,9 +204,15 @@ class UserInterface extends VBox {
         if (makeMove(fromPip, toPip, currentPlayer) != -1) { // If no errors we can print the checkers movement as a string
             if (currentPlayer == Player.playerRed.getTurn()) {
                 textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                moveTo = GameLogic.findMoveTo(ownerCheckers);
+                displayLegalMoves(ownerCheckers, moveTo);
             }
             if (currentPlayer == Player.playerBlue.getTurn()) {
                 textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                moveTo = GameLogic.findMoveTo(ownerCheckers);
+                displayLegalMoves(ownerCheckers, moveTo);
             }
             if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
                 GameFinish gameFinish = new GameFinish();
