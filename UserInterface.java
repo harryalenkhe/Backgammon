@@ -18,7 +18,7 @@ class UserInterface extends VBox {
     private static Image boardImageFlipped;
     private int currentPlayer;
     private int[] ownerCheckers;
-    private int[] moveTo;
+    private int[][] moveTo;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -174,7 +174,7 @@ class UserInterface extends VBox {
 
         ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
         moveTo = GameLogic.findMoveTo(ownerCheckers);
-        displayLegalMoves(ownerCheckers, moveTo);
+        displayLegalMoves(moveTo);
     }
 
     private void nextCommand() {
@@ -193,26 +193,28 @@ class UserInterface extends VBox {
         }
         ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
         moveTo = GameLogic.findMoveTo(ownerCheckers);
-        displayLegalMoves(ownerCheckers, moveTo);
+        displayLegalMoves(moveTo);
     }
 
-    private void moveCommand(char option, int[] ownerCheckers, int[] moveTo, Stage primaryWindow) {
+    private void moveCommand(char option, int[] ownerCheckers, int[][] moveTo, Stage primaryWindow) {
         int index = option - 'A';
         int fromPip = ownerCheckers[index];
-        int toPip = moveTo[index];
+        int toPip = moveTo[index][0];
         textField.setText("");
         if (makeMove(fromPip, toPip, currentPlayer) != -1) { // If no errors we can print the checkers movement as a string
             if (currentPlayer == Player.playerRed.getTurn()) {
+
+
                 textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
                 ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
                 moveTo = GameLogic.findMoveTo(ownerCheckers);
-                displayLegalMoves(ownerCheckers, moveTo);
+                displayLegalMoves(moveTo);
             }
             if (currentPlayer == Player.playerBlue.getTurn()) {
                 textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
                 ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
                 moveTo = GameLogic.findMoveTo(ownerCheckers);
-                displayLegalMoves(ownerCheckers, moveTo);
+                displayLegalMoves(moveTo);
             }
             if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
                 GameFinish gameFinish = new GameFinish();
@@ -221,21 +223,43 @@ class UserInterface extends VBox {
         }
     }
 
-    private void displayLegalMoves(int[] ownerCheckers, int[] moveTo) {
+    private void displayLegalMoves(int[][] moveTo) {
         String[] LEGAL_MOVES = new String[15];
         char letter = 'A';
-
+        int finalLocation = 0;
         textArea.appendText("Available moves:\n");
-        for (int index = 0; index < moveTo.length; index++) {
-            LEGAL_MOVES[index] = ownerCheckers[index] + " - " + moveTo[index];
-            if (LEGAL_MOVES[0] == null) {
-                textArea.appendText("There are no moves available, You pass your turn.\n");
-                nextCommand();
-                break;
+        for (int i = 0; i < moveTo.length; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (j < 2) {
+                    LEGAL_MOVES[i] = ownerCheckers[i] + " - " + moveTo[i][j];
+                }
+                if (j >= 2) {
+                    if (j == 2) {
+                        finalLocation = moveTo[i][0] - (Dice.roll2 + 1);
+                    } else {
+                        finalLocation = moveTo[i][1] - (Dice.roll1 + 1);
+                    }
+
+                    LEGAL_MOVES[i] = ownerCheckers[i] + " - " + moveTo[i][j - 2] + "\t\t" + moveTo[i][j - 2] + " - " + finalLocation;
+                }
+                if (LEGAL_MOVES[0] == null) {
+                    textArea.appendText("There are no moves available, You have to pass your turn.\n");
+                    nextCommand();
+                    break;
+                }
+                if (j < 2) {
+                    if (moveTo[i][j] > 0) {
+                        textArea.appendText(letter++ + ":\t" + LEGAL_MOVES[i] + "\n");
+                    }
+                }
+                if (j >= 2) {
+                    if (moveTo[i][j - 2] > 0 && finalLocation > 0) {
+                        textArea.appendText(letter++ + ":\t" + LEGAL_MOVES[i] + "\n");
+                    }
+                }
+
             }
-            if (moveTo[index] > 0) {
-                textArea.appendText(letter++ + ": " + LEGAL_MOVES[index] + "\n");
-            }
+
         }
         textArea.appendText("\n");
     }

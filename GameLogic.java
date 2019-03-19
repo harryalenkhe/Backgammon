@@ -19,8 +19,8 @@ public class GameLogic {
                 checkerX = BoardPanel.redCheckers[index].getCircleX();
                 checkerY = BoardPanel.redCheckers[index].getCircleY();
 
-                column = (int) (((checkerX - 109)/33.35) + 0.5d); // Get column from X coordinate
-                if(column > 5) { // To make up for skipping the bar
+                column = (int) (((checkerX - 109) / 33.35) + 0.5d); // Get column from X coordinate
+                if (column > 5) { // To make up for skipping the bar
                     column -= 2;
                 }
                 if (checkerY <= 241) { // If top half of board
@@ -41,7 +41,7 @@ public class GameLogic {
                 checkerY = BoardPanel.blueCheckers[index].getCircleY();
 
                 column = (int) (((checkerX - 109) / 33.35) + 0.5d); // Get column from X coordinate
-                if(column > 5) { // To make up for skipping the bar
+                if (column > 5) { // To make up for skipping the bar
                     column -= 2;
                 }
                 if (checkerY <= 241) { // If top half of board
@@ -61,18 +61,21 @@ public class GameLogic {
         }
 
         Iterator iterator = set.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             newArr[i++] = (int) iterator.next();
         }
 
         return newArr;
     }
 
-    static int[] findMoveTo(int[] array) {
-        int[] cloneArray = array.clone();
-        for(int index = 0; index < array.length; index++) {
-            cloneArray[index] -= Dice.roll1+1;
+    static int[][] findMoveTo(int[] array) {
+        int[][] moveTo = new int[array.length][2];
+        for (int index = 0; index < array.length; index++) {
+            moveTo[index][0] = array[index];
+            moveTo[index][0] -= Dice.roll1 + 1;
+            moveTo[index][1] = array[index];
+            moveTo[index][1] -= Dice.roll2 + 1;
         }
-        return cloneArray;
+        return moveTo;
     }
 }
