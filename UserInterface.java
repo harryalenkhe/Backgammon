@@ -5,20 +5,22 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.stream.IntStream;
 
 class UserInterface extends VBox {
-
     private static TextField textField;
     private static TextArea textArea;
     private BufferedImage emptyBoardImageFlipped;
     private static Image boardImageFlipped;
     private int currentPlayer;
-    private int[] ownerCheckers;
+    private ArrayList<Integer> ownerCheckers;
+    private ArrayList<Integer> MOVE_COUNT; // Has value of moves ( if a double move or single move )
     private int[][] moveTo;
+    private int moveCountTotal = 0;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -28,26 +30,20 @@ class UserInterface extends VBox {
         getChildren().addAll(textField, textArea);
     }
 
-    private int makeMove(int fromPip, int toPip, int currentPlayer) {
-        int error = 0; // If there is an error then returned value will be -1
+    private void makeMove(int fromPip, int toPip, int currentPlayer) {
         textField.setText("");
 
         int fromColumn = BoardPanel.convertPipToColumn(fromPip); // Convert pip to be moved from to column index
         int toColumn = BoardPanel.convertPipToColumn(toPip); // Convert pip to be moved to, to column index
         int fromRow = BoardPanel.topCheckerInPip(fromColumn, fromPip, currentPlayer); // Get top checker position in column to be moved from
-
-
         int toRow = BoardPanel.nextRow(toColumn, toPip, currentPlayer); // Get free position in column to be moved to
-
 
         Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn, fromRow, currentPlayer, fromPip);
         if (fromPip == 0) { // Moving from bar to board
             BoardPanel.BAR[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
-        }
-
-        if (toPip == 25) { // Moving from board to bear
+        } if (toPip == 25) { // Moving from board to bear
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
             BoardPanel.BEAR[toColumn][toRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
@@ -58,8 +54,6 @@ class UserInterface extends VBox {
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
         }
-
-        return error;
     }
 
     private void setBoardImageFlipped() {
@@ -127,13 +121,22 @@ class UserInterface extends VBox {
 //
 //            } // Doubles the odds and flips cube //
 
-            if (textField.getText().equalsIgnoreCase("next")) {
-                nextCommand();
-            }
-
             if (moveOption.trim().length() == 1) {
                 char option = moveOption.charAt(0);
-                moveCommand(option, ownerCheckers, moveTo, primaryWindow);
+                moveCommand(option, primaryWindow);
+
+                if (moveCountTotal == 2) { // two moves have been made
+                    moveCountTotal = 0;
+                    System.out.println(moveCountTotal + "\n");
+                    nextCommand();
+                }
+
+                if (moveCountTotal == 1) {
+                    ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                    moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
+                    displayLegalMoves(moveTo);
+                    System.out.println(moveCountTotal + "\n");
+                }
             }
 
             if (textField.getText().equalsIgnoreCase("cheat")) {
@@ -191,75 +194,104 @@ class UserInterface extends VBox {
             BoardPanel.gameView.setImage(BoardPanel.boardImage);
             currentPlayer = Player.playerRed.getTurn();
         }
+
         ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
         moveTo = GameLogic.findMoveTo(ownerCheckers);
         displayLegalMoves(moveTo);
     }
 
-    private void moveCommand(char option, int[] ownerCheckers, int[][] moveTo, Stage primaryWindow) {
-        int index = option - 'A';
-        int fromPip = ownerCheckers[index];
-        int toPip = moveTo[index][0];
+    private void moveCommand(char option, Stage primaryWindow) {
         textField.setText("");
-        if (makeMove(fromPip, toPip, currentPlayer) != -1) { // If no errors we can print the checkers movement as a string
-            if (currentPlayer == Player.playerRed.getTurn()) {
+        int index = option - 'A';
+        int moveCount = MOVE_COUNT.get(index); // Get if the move is a double or single
+        moveCountTotal += moveCount;
+        int fromPip = moveTo[index][0];
+        int toPip = 0;
+        if(moveCount == 2) { // If its a double move
+            toPip = moveTo[index][3];
+        }
 
+        else if (moveCount == 1) { // If its a single move
+            if(moveTo[index][1] == -1) {
+                toPip = moveTo[index][2];
+            }
+            if(moveTo[index][2] == -1) {
+                toPip = moveTo[index][1];
+            }
+        }
 
-                textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                moveTo = GameLogic.findMoveTo(ownerCheckers);
-                displayLegalMoves(moveTo);
+        if(toPip == -1) {
+            textArea.appendText("ERROR\n");
+        }
+
+        if(toPip != -1) {
+            makeMove(fromPip, toPip, currentPlayer);
+        }
+
+        if (currentPlayer == Player.playerRed.getTurn()) {
+            textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+            if(moveCountTotal == 2) {
+                textArea.appendText("Next player's turn\n");
+                nextCommand();
             }
-            if (currentPlayer == Player.playerBlue.getTurn()) {
-                textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                moveTo = GameLogic.findMoveTo(ownerCheckers);
-                displayLegalMoves(moveTo);
+        }
+        if (currentPlayer == Player.playerBlue.getTurn()) {
+            textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+            if(moveCountTotal == 2) {
+                textArea.appendText("Next player's turn\n");
+                nextCommand();
             }
-            if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
-                GameFinish gameFinish = new GameFinish();
-                primaryWindow.setScene(gameFinish.finishScene);
-            }
+        }
+        if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
+            GameFinish gameFinish = new GameFinish();
+            primaryWindow.setScene(gameFinish.finishScene);
         }
     }
 
     private void displayLegalMoves(int[][] moveTo) {
-        String[] LEGAL_MOVES = new String[15];
-        char letter = 'A';
-        int finalLocation = 0;
+        ArrayList<String> LEGAL_MOVES = new ArrayList<>();
+        MOVE_COUNT = new ArrayList<>();
+        char letter = 'A'; // To be used as selection option for player
+
         textArea.appendText("Available moves:\n");
-        for (int i = 0; i < moveTo.length; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (j < 2) {
-                    LEGAL_MOVES[i] = ownerCheckers[i] + " - " + moveTo[i][j];
-                }
-                if (j >= 2) {
-                    if (j == 2) {
-                        finalLocation = moveTo[i][0] - (Dice.roll2 + 1);
-                    } else {
-                        finalLocation = moveTo[i][1] - (Dice.roll1 + 1);
-                    }
-
-                    LEGAL_MOVES[i] = ownerCheckers[i] + " - " + moveTo[i][j - 2] + "\t\t" + moveTo[i][j - 2] + " - " + finalLocation;
-                }
-                if (LEGAL_MOVES[0] == null) {
-                    textArea.appendText("There are no moves available, You have to pass your turn.\n");
-                    nextCommand();
-                    break;
-                }
-                if (j < 2) {
-                    if (moveTo[i][j] > 0) {
-                        textArea.appendText(letter++ + ":\t" + LEGAL_MOVES[i] + "\n");
-                    }
-                }
-                if (j >= 2) {
-                    if (moveTo[i][j - 2] > 0 && finalLocation > 0) {
-                        textArea.appendText(letter++ + ":\t" + LEGAL_MOVES[i] + "\n");
-                    }
-                }
-
+        for (int[] ints : moveTo) {
+            if(ints[1] == -1) {
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                MOVE_COUNT.add(1);
             }
 
+            else if(ints[2] == -1) {
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                MOVE_COUNT.add(1);
+            }
+
+            else if(ints[3] == -1) { // Store as seperate moves
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                MOVE_COUNT.add(1);
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                MOVE_COUNT.add(1);
+            }
+
+            else {
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                MOVE_COUNT.add(2);
+                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                MOVE_COUNT.add(2);
+            }
+        }
+
+        if(LEGAL_MOVES.size() == 0) {
+            textArea.appendText("No available moves. Your turn is over\n");
+            nextCommand();
+        }
+
+        if(LEGAL_MOVES.size() == 1) {
+            // move with that only move
+            nextCommand();
+        }
+
+        else {
+            IntStream.range(0, LEGAL_MOVES.size()).forEach(index -> textArea.appendText(LEGAL_MOVES.get(index) + "\n"));
         }
         textArea.appendText("\n");
     }

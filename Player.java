@@ -15,7 +15,6 @@ class Player {
 	private String p1Info;
 	private String p2Info;
 	private Effects effects;
-//	private int moveCount;
 
 	Player() {
 		this.name = "";
@@ -90,11 +89,4 @@ class Player {
 	int getTurn() {
 		return this.turn;
 	}
-
-//	public int getmove() {
-//		return this.moveCount;
-//	}
-//	public void setmove(int m){
-//		this.moveCount=m;
-//	}
 }
