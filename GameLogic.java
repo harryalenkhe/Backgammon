@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 class GameLogic {
-
     static ArrayList<Integer> findOwnCheckers(int currentPlayer) {
         double checkerX;
         double checkerY;
@@ -15,12 +14,16 @@ class GameLogic {
         Set set = new HashSet();
         ArrayList<Integer>  newArrayList = new ArrayList<>();
         int[] array = new int[15];
-        int i = 0;
 
         if (currentPlayer == Player.playerRed.getTurn()) { // If red players turn
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.redCheckers[index].getCircleX();
                 checkerY = BoardPanel.redCheckers[index].getCircleY();
+
+                if(checkerX == 325.775) {
+                    pip = 0;
+                    array[index] = pip;
+                }
 
                 column = (int) (((checkerX - 109)/33.35) + 0.5d); // Get column from X coordinate
                 if(column > 5) { // To make up for skipping the bar
@@ -42,6 +45,11 @@ class GameLogic {
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.blueCheckers[index].getCircleX();
                 checkerY = BoardPanel.blueCheckers[index].getCircleY();
+
+                if(checkerX == 325.775) {
+                    pip = 0;
+                    array[index] = pip;
+                }
 
                 column = (int) (((checkerX - 109) / 33.35) + 0.5d); // Get column from X coordinate
                 if(column > 5) { // To make up for skipping the bar
@@ -71,42 +79,34 @@ class GameLogic {
     }
 
     static int[][] findMoveTo(ArrayList<Integer> ownerCheckers) {
-        boolean canBearOff = false;
         int[][] moveTo = new int[ownerCheckers.size()][4];
         for (int index = 0; index < ownerCheckers.size(); index++) {
-            if(canBearOff) { // always false for now but IF CAN BEAR OFF
-                moveTo[index][0] = ownerCheckers.get(index);
 
-                moveTo[index][1] = ownerCheckers.get(index); // Taking starting position
-                if((moveTo[index][1] - Dice.roll1+1) < 0) moveTo[index][1] = -1;
-                else moveTo[index][1] -= Dice.roll1 + 1; // - dice roll 1 to get moveTo Pip
+            int startPip = ownerCheckers.get(index);
+            int singleToPip1;
+            int singleToPip2;
+            int doubleToPip;
 
-
-                moveTo[index][2] = ownerCheckers.get(index);
-                if((moveTo[index][2] - Dice.roll2+1) < 0) moveTo[index][2] = -1;
-                else moveTo[index][2] -= Dice.roll2 + 1;
-
-                moveTo[index][3] = ownerCheckers.get(index);
-                if(moveTo[index][3] - (Dice.roll1 + Dice.roll2 + 2) < 0) moveTo[index][3] = -1;
-                else moveTo[index][3] -= (Dice.roll1 + Dice.roll2 + 2);
+            if(startPip == 0) {
+                singleToPip1 = 25 - (Dice.roll1+1);
+                singleToPip2 = 25 - (Dice.roll2+1);
+                doubleToPip = 25 - (Dice.roll1 + Dice.roll2 + 2);
+            } else {
+                singleToPip1 = startPip - (Dice.roll1+1);
+                singleToPip2 = startPip - (Dice.roll2+1);
+                doubleToPip = startPip - (Dice.roll1 + Dice.roll2 + 2);
             }
 
-            if(!canBearOff) { // If cant bear off yet
-                moveTo[index][0] = ownerCheckers.get(index); // store starting pip
+            moveTo[index][0] = startPip; // store starting pip
 
-                moveTo[index][1] = ownerCheckers.get(index); // store starting pip
-                if((moveTo[index][1] - (Dice.roll1+1)) <= 0) moveTo[index][1] = -1;
-                else moveTo[index][1] -= Dice.roll1 + 1; // - dice roll 1 to get moveTo Pip
+            if(singleToPip1 <= 0) moveTo[index][1] = 0;
+            else moveTo[index][1] = singleToPip1; // - dice roll 1 to get moveTo Pip
 
+            if(singleToPip2 <= 0) moveTo[index][2] = 0;
+            else moveTo[index][2] = singleToPip2;
 
-                moveTo[index][2] = ownerCheckers.get(index); // store starting pip
-                if((moveTo[index][2] - (Dice.roll2+1)) <= 0) moveTo[index][2] = -1;
-                else moveTo[index][2] -= Dice.roll2 + 1;
-
-                moveTo[index][3] = ownerCheckers.get(index); // store starting pip
-                if(moveTo[index][3] - (Dice.roll1 + Dice.roll2 + 2) <= 0) moveTo[index][3] = -1;
-                else moveTo[index][3] -= (Dice.roll1 + Dice.roll2 + 2);
-            }
+            if(doubleToPip <= 0) moveTo[index][3] = 0;
+            else moveTo[index][3] = doubleToPip;
         }
         return moveTo;
     }

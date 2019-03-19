@@ -8,7 +8,10 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.rmi.dgc.Lease;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 class UserInterface extends VBox {
@@ -21,6 +24,10 @@ class UserInterface extends VBox {
     private ArrayList<Integer> MOVE_COUNT; // Has value of moves ( if a double move or single move )
     private int[][] moveTo;
     private int moveCountTotal = 0;
+    private boolean canBearOff = true;
+    private ArrayList<String> LEGAL_MOVES;
+    private ArrayList<Integer> FROM_PIPS;
+    private ArrayList<Integer> TO_PIPS;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -42,6 +49,7 @@ class UserInterface extends VBox {
         if (fromPip == 0) { // Moving from bar to board
             BoardPanel.BAR[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
+            BoardPanel.BOARD[toColumn][toRow].releaseCoordinate();
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
         } if (toPip == 25) { // Moving from board to bear
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
@@ -121,28 +129,30 @@ class UserInterface extends VBox {
 //
 //            } // Doubles the odds and flips cube //
 
-            if (moveOption.trim().length() == 1) {
+            if (moveOption.trim().length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
-                moveCommand(option, primaryWindow);
 
+                moveCommand(option, primaryWindow);
                 if (moveCountTotal == 2) { // two moves have been made
                     moveCountTotal = 0;
-                    System.out.println(moveCountTotal + "\n");
-                    nextCommand();
                 }
 
                 if (moveCountTotal == 1) {
                     ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
                     moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
                     displayLegalMoves(moveTo);
-                    System.out.println(moveCountTotal + "\n");
                 }
             }
 
             if (textField.getText().equalsIgnoreCase("cheat")) {
                 textField.setText("");
+                textArea.setText("");
                 BoardPanel.setUpCheat();
+                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
+                displayLegalMoves(moveTo);
             }
+
         });
     }
 
@@ -203,80 +213,116 @@ class UserInterface extends VBox {
     private void moveCommand(char option, Stage primaryWindow) {
         textField.setText("");
         int index = option - 'A';
-        int moveCount = MOVE_COUNT.get(index); // Get if the move is a double or single
-        moveCountTotal += moveCount;
-        int fromPip = moveTo[index][0];
-        int toPip = 0;
-        if(moveCount == 2) { // If its a double move
-            toPip = moveTo[index][3];
+        if(index >= LEGAL_MOVES.size()) {
+            textArea.appendText("NOT A VALID OPTION\nTRY AGAIN\n");
         }
 
-        else if (moveCount == 1) { // If its a single move
-            if(moveTo[index][1] == -1) {
-                toPip = moveTo[index][2];
-            }
-            if(moveTo[index][2] == -1) {
-                toPip = moveTo[index][1];
-            }
-        }
-
-        if(toPip == -1) {
-            textArea.appendText("ERROR\n");
-        }
-
-        if(toPip != -1) {
+        else {
+            int moveCount = MOVE_COUNT.get(index); // Get if the move is a double or single
+            int fromPip = FROM_PIPS.get(index);
+            int toPip = TO_PIPS.get(index);
             makeMove(fromPip, toPip, currentPlayer);
-        }
+            moveCountTotal += moveCount;
 
-        if (currentPlayer == Player.playerRed.getTurn()) {
-            textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-            if(moveCountTotal == 2) {
-                textArea.appendText("Next player's turn\n");
-                nextCommand();
+            if (currentPlayer == Player.playerRed.getTurn()) {
+                textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+                if(moveCountTotal == 2) {
+                    nextCommand();
+                    return;
+                }
+            } else if (currentPlayer == Player.playerBlue.getTurn()){
+                textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
+                if(moveCountTotal == 2) {
+                    nextCommand();
+                    return;
+                }
+            } if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
+                GameFinish gameFinish = new GameFinish();
+                primaryWindow.setScene(gameFinish.finishScene);
             }
-        }
-        if (currentPlayer == Player.playerBlue.getTurn()) {
-            textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-            if(moveCountTotal == 2) {
-                textArea.appendText("Next player's turn\n");
-                nextCommand();
-            }
-        }
-        if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
-            GameFinish gameFinish = new GameFinish();
-            primaryWindow.setScene(gameFinish.finishScene);
         }
     }
 
     private void displayLegalMoves(int[][] moveTo) {
-        ArrayList<String> LEGAL_MOVES = new ArrayList<>();
+        FROM_PIPS = new ArrayList<>();
+        TO_PIPS = new ArrayList<>();
+        LEGAL_MOVES = new ArrayList<>();
         MOVE_COUNT = new ArrayList<>();
         char letter = 'A'; // To be used as selection option for player
 
         textArea.appendText("Available moves:\n");
         for (int[] ints : moveTo) {
-            if(ints[1] == -1) {
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                MOVE_COUNT.add(1);
+            if(canBearOff) {
+                if(ints[1] == 0 || ints[2] == 0) { // can bear off
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(25);
+                    MOVE_COUNT.add(1);
+                }
+
+                else if(ints[3] == 0) { // Store as separate moves
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(25);
+                    MOVE_COUNT.add(2);
+
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - Off");
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(25);
+                    MOVE_COUNT.add(2);
+                }
+
+                else {
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(ints[3]);
+                    MOVE_COUNT.add(2);
+
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(ints[3]);
+                    MOVE_COUNT.add(2);
+                }
             }
 
-            else if(ints[2] == -1) {
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                MOVE_COUNT.add(1);
-            }
+            if(!canBearOff) { // cant bear off
+                if(ints[3] != 0) {
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(ints[3]);
+                    MOVE_COUNT.add(2);
 
-            else if(ints[3] == -1) { // Store as seperate moves
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                MOVE_COUNT.add(1);
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                MOVE_COUNT.add(1);
-            }
+                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                    FROM_PIPS.add(ints[0]);
+                    TO_PIPS.add(ints[3]);
+                    MOVE_COUNT.add(2);
+                } else {
+                    if(ints[1] != 0 && ints[2] != 0) {
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[1]);
+                        MOVE_COUNT.add(1);
 
-            else {
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                MOVE_COUNT.add(2);
-                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                MOVE_COUNT.add(2);
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[2]);
+                        MOVE_COUNT.add(1);
+                    }
+
+                    else if(ints[1] == 0) {
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[2]);
+                        MOVE_COUNT.add(1);
+                    }
+
+                    else {
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[1]);
+                        MOVE_COUNT.add(1);
+                    }
+                }
             }
         }
 
