@@ -20,11 +20,11 @@ class GameFinish {
 
     private void setFinishText() {
         Text finish = new Text();
-        if(BoardPanel.getWinner() == Player.playerRed.getTurn()) {
+        if(GameLogic.getWinner() == Player.playerRed.getTurn()) {
             finish.setText(Player.playerRed.getName() + " is the winner!");
         }
 
-        if(BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
+        if(GameLogic.getWinner() == Player.playerBlue.getTurn()) {
             finish.setText(Player.playerBlue.getName() + " is the winner!");
         }
 
