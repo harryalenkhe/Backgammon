@@ -1,4 +1,6 @@
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -24,7 +26,7 @@ class UserInterface extends VBox {
     private int[][] moveTo;
     private int moveCountTotal = 0;
     private int currentPlayer;
-    private boolean canBearOff = true;
+    private boolean canBearOff = false;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -41,29 +43,28 @@ class UserInterface extends VBox {
         int toColumn = GameLogic.convertPipToColumn(toPip); // Convert pip to be moved to, to column index
         int fromRow = GameLogic.topCheckerInPip(fromColumn, fromPip, currentPlayer); // Get top checker position in column to be moved from
         int toRow = GameLogic.nextRow(toColumn, toPip, currentPlayer); // Get free position in column to be moved to
+        char currentPlayerColour; // Each position has a one of 3 colours RED, BLUE OR EMPTY ( R, B, E )
 
         Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn, fromRow, currentPlayer, fromPip);
 
         // 3 types of moves can be made
         if (fromPip == 0) { // Moving from bar to board
+            currentPlayerColour = BoardPanel.BAR[fromColumn][fromRow].getPlayer();
             BoardPanel.BAR[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
-            BoardPanel.BOARD[toColumn][toRow].releaseCoordinate(); // Precaution, release coordinate before moving
-            BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
+            BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(currentPlayerColour);
         }
 
         if (toPip == 25) { // Moving from board to bear
-            BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
-            BoardPanel.BEAR[toColumn][toRow].releaseCoordinate();
+            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayer();
+            BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
-            BoardPanel.BEAR[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
-        }
-
-        else { // Moving from board to board
-            BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
-            BoardPanel.BOARD[toColumn][toRow].releaseCoordinate(); // Pre-caution, make sure position to be moved is unoccupied
+            BoardPanel.BEAR[toColumn][toRow].occupyCoordinate(currentPlayerColour);
+        } else { // Moving from board to board
+            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayer();
+            BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Set position to no colour
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
-            BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
+            BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(currentPlayerColour); // Occupy position with colour of current player
         }
     }
 
@@ -221,20 +222,20 @@ class UserInterface extends VBox {
     private void cheatCommand() {
 
         // Release all coordinates on board, bar and bear-off
-        for(int i = 0; i < 12; i++) {
-            for(int j = 0; j < 12; j++) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 12; j++) {
                 BoardPanel.BOARD[i][j].releaseCoordinate();
             }
         }
 
-        for(int i = 0; i < 1; i++) {
-            for(int j = 0; j < 30; j++) {
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < 30; j++) {
                 BoardPanel.BEAR[i][j].releaseCoordinate();
             }
         }
 
-        for(int i = 0; i < 1; i++) {
-            for(int j = 0; j < 10; j++) {
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < 10; j++) {
                 BoardPanel.BAR[i][j].releaseCoordinate();
             }
         }
@@ -245,86 +246,86 @@ class UserInterface extends VBox {
         int column = GameLogic.convertPipToColumn(currentPip); // COLUMN OF PIP THAT WAS CONVERTED
         int row;
 
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
         currentPip = 2;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
         currentPip = 3;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
         currentPip = 4;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
         currentPip = 5;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
         column = 0; // BAR RED
         row = 0;
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 0);
-            BoardPanel.BAR[column][row].occupyCoordinate();
+            BoardPanel.BAR[column][row].occupyCoordinate('R');
             numReds++;
             row++;
         }
 
         column = 0; // BEAR RED
         row = 15;
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) {
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) {
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 25);
-            BoardPanel.BEAR[column][row].occupyCoordinate();
+            BoardPanel.BEAR[column][row].occupyCoordinate('R');
             numReds++;
             row++;
         }
 
         column = 0; // BAR BLUE
         row = 5;
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
             Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 0);
-            BoardPanel.BAR[column][row].occupyCoordinate();
+            BoardPanel.BAR[column][row].occupyCoordinate('B');
             numBlues++;
             row++;
         }
 
         column = 0; // BEAR BLUE
         row = 0;
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
             Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 25);
-            BoardPanel.BEAR[column][row].occupyCoordinate();
+            BoardPanel.BEAR[column][row].occupyCoordinate('B');
             numBlues++;
             row++;
         }
@@ -332,44 +333,42 @@ class UserInterface extends VBox {
 
         currentPip = 24;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('B'); // Position now occupied
             numBlues++;
         }
 
         currentPip = 22;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('B'); // Position now occupied
             numBlues++;
         }
 
         currentPip = 21;
         column = GameLogic.convertPipToColumn(currentPip);
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('B'); // Position now occupied
             numBlues++;
         }
 
-    }
+    } // Cheat testing
 
     private void moveCommand(char option) {
         textField.setText("");
         int index = option - 'A';
-        if(index >= LEGAL_MOVES.size()) {
-            textArea.appendText("NOT A VALID OPTION\nTRY AGAIN");
-        }
-
-        else {
+        if (index >= LEGAL_MOVES.size()) {
+            getIllegalMoveAlert();
+        } else {
             moveCountTotal += MOVE_COUNT.get(index); // Get if the move is a double or single
             int fromPip = FROM_PIPS.get(index);
             int toPip = TO_PIPS.get(index);
@@ -377,12 +376,12 @@ class UserInterface extends VBox {
 
             if (currentPlayer == Player.playerRed.getTurn()) {
                 textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                if(moveCountTotal == 2) {
+                if (moveCountTotal == 2) {
                     nextCommand();
                 }
-            } else if (currentPlayer == Player.playerBlue.getTurn()){
+            } else if (currentPlayer == Player.playerBlue.getTurn()) {
                 textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                if(moveCountTotal == 2) {
+                if (moveCountTotal == 2) {
                     nextCommand();
                 }
             }
@@ -398,15 +397,13 @@ class UserInterface extends VBox {
 
         textArea.appendText("Available moves:\n");
         for (int[] ints : moveTo) {
-            if(canBearOff) {
-                if(ints[1] == 0 || ints[2] == 0) { // can bear off
+            if (canBearOff) { // CAN BEAR OFF
+                if (ints[1] == 0 || ints[2] == 0) {  // SINGLE BEAR-OFF MOVE
                     LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
                     FROM_PIPS.add(ints[0]);
                     TO_PIPS.add(25);
                     MOVE_COUNT.add(1);
-                }
-
-                else if(ints[3] == 0) { // Store as separate moves
+                } else if (ints[3] == 0) { // DOUBLE BEAR-OFF MOVE
                     LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
                     FROM_PIPS.add(ints[0]);
                     TO_PIPS.add(25); // Bear off pip positions is 25
@@ -416,34 +413,56 @@ class UserInterface extends VBox {
                     FROM_PIPS.add(ints[0]);
                     TO_PIPS.add(25);
                     MOVE_COUNT.add(2); // Move using two dice rolls counts as two moves
-                }
+                } else { // NON BEAR-OFF MOVE
+                    if (ints[0] == 0) { // BAR-TO-BOARD MOVE
+                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
 
-                else {
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(ints[3]);
-                    MOVE_COUNT.add(2);
+                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
+                    } else { // BOARD-TO-BOARD MOVE
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
 
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(ints[3]);
-                    MOVE_COUNT.add(2);
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
+                    }
                 }
             }
 
-            if(!canBearOff) { // cant bear off
-                if(ints[3] != 0) {
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(ints[3]);
-                    MOVE_COUNT.add(2);
+            if (!canBearOff) { // cant bear off
+                if (ints[3] != 0) { // NON BEAR-OFF MOVE
+                    if (ints[0] == 0) { // BAR-TO-BOARD MOVE
+                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
 
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(ints[3]);
-                    MOVE_COUNT.add(2);
+                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
+                    } else { // BOARD-TO-BOARD MOVE
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
+
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                        FROM_PIPS.add(ints[0]);
+                        TO_PIPS.add(ints[3]);
+                        MOVE_COUNT.add(2);
+                    }
                 } else {
-                    if(ints[1] != 0 && ints[2] != 0) {
+                    if (ints[1] != 0 && ints[2] != 0) {
                         LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
                         FROM_PIPS.add(ints[0]);
                         TO_PIPS.add(ints[1]);
@@ -453,16 +472,12 @@ class UserInterface extends VBox {
                         FROM_PIPS.add(ints[0]);
                         TO_PIPS.add(ints[2]);
                         MOVE_COUNT.add(1);
-                    }
-
-                    else if(ints[1] == 0) {
+                    } else if (ints[1] == 0) {
                         LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
                         FROM_PIPS.add(ints[0]);
                         TO_PIPS.add(ints[2]);
                         MOVE_COUNT.add(1);
-                    }
-
-                    else {
+                    } else {
                         LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
                         FROM_PIPS.add(ints[0]);
                         TO_PIPS.add(ints[1]);
@@ -472,21 +487,134 @@ class UserInterface extends VBox {
             }
         }
 
-        if(LEGAL_MOVES.size() == 0) {
-            textArea.appendText("No available moves. Your turn is over\n");
+        if (LEGAL_MOVES.size() == 0) {
+            getNoMovesAlert();
             nextCommand();
         }
 
-        if(LEGAL_MOVES.size() == 1) {
+        if (LEGAL_MOVES.size() == 1) {
+            getForcedPlayAlert();
             moveCommand('A'); // Make move with the forced legal move
             nextCommand(); // Pass
-        }
-
-        else {
+        } else {
             IntStream.range(0, LEGAL_MOVES.size()).forEach(index -> textArea.appendText(LEGAL_MOVES.get(index) + "\n"));
         }
         textArea.appendText("\n");
     }
+
+    private void getNoMovesAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("No moves available");
+        alert.setHeaderText("There are no moves available");
+        alert.setContentText("Your turn will now be passed");
+        alert.show();
+
+        Thread newThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        alert.close();
+                    }
+                });
+            }
+        });
+        newThread.start();
+    } // Warning for no moves available
+
+    private void getForcedPlayAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Play is forced");
+        alert.setHeaderText("There is only one legal move");
+        alert.setContentText("The move will now be executed");
+        alert.show();
+
+        Thread newThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        alert.close();
+                    }
+                });
+            }
+        });
+        newThread.start();
+    } // Warning for forced play
+
+    private void getIllegalMoveAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("ILLEGAL MOVE");
+        alert.setHeaderText("Entered move was not one of the options");
+        alert.setContentText("Please enter a valid move");
+        alert.show();
+
+        Thread newThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        alert.close();
+                    }
+                });
+            }
+        });
+        newThread.start();
+    } // Warning for incorrect selection of moves
+
+//    private boolean isCanBearOff(int currentPlayer) {
+//        char currentPlayerColour;
+//        int column;
+//        int row;
+//        int pip = 0;
+//        if(currentPlayer == Player.playerBlue.getTurn()) {
+//            currentPlayerColour = 'B';
+//
+//            if() {
+//              canBearOff = false;
+//            } else {
+//                for(pip = 24; pip > 6; pip--) {
+//                    if(position is occupied with blue) canBearOff = false;
+//                }
+//                canBearOff = true;
+//              }
+//        }
+//
+//        if(currentPlayer == Player.playerRed.getTurn()) {
+//            currentPlayerColour = 'R';
+//
+//            if() {
+//              canBearOff = false;
+//            } else {
+//                for(pip = 24; pip > 6; pip--) {
+//                    if(position is occupied with blue) canBearOff = false;
+//                }
+//                canBearOff = true;
+//              }
+//        }
+//        return canBearOff;
+//    }
 }
 
 

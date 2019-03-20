@@ -1,3 +1,5 @@
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -23,7 +25,7 @@ class Player {
 		effects = new Effects();
 	}
 
-	Player(String name, String colour, int t) {
+	private Player(String name, String colour, int t) {
 		this.name = name;
 		this.colour = colour;
 		this.turn = t;
@@ -53,7 +55,9 @@ class Player {
 				p1Info = playerRed.getName() + " = " + playerRed.getColour() + "\n";
 				RedPlayer.getChildren().remove(textField1);
 				label1.setText(p1Info);
-			} else { }
+			} else {
+				getAlert();
+			}
 		});
 
 		Text label2 = new Text("Enter Player's Name:");
@@ -70,7 +74,9 @@ class Player {
 				BluePlayer.getChildren().remove(textField2);
 				label2.setText(p2Info);
 				primaryWindow.setScene(BoardPanel.gameBoard);
-			} else { }
+			} else {
+				getAlert();
+			}
 		});
 
 		RedPlayer = new HBox();
@@ -88,5 +94,32 @@ class Player {
 
 	int getTurn() {
 		return this.turn;
+	}
+
+	private void getAlert() {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle("No name entered");
+		alert.setHeaderText("NO NAME ENTERED FOR PLAYER");
+		alert.setContentText("Please enter a name before continuing");
+		alert.show();
+
+		Thread newThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException ex) {
+					Thread.currentThread().interrupt();
+				}
+
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						alert.close();
+					}
+				});
+			}
+		});
+		newThread.start();
 	}
 }

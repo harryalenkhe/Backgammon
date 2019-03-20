@@ -81,7 +81,7 @@ class BoardPanel {
             if(row == 15) {
                 bearY = 317;
             }
-            BEAR[col][row] = new Coordinates(bearX, bearY);
+            BEAR[col][row] = new Coordinates(bearX, bearY, 'E');
             bearY += BEAR_OFFSET;
         }
     }
@@ -93,7 +93,7 @@ class BoardPanel {
         double BAR_OFFSET = 30;
 
         for(int row = 0; row < 10; row++) {
-            BAR[col][row] = new Coordinates(barX, barY);
+            BAR[col][row] = new Coordinates(barX, barY, 'E');
             barY += BAR_OFFSET;
         }
     }
@@ -114,7 +114,7 @@ class BoardPanel {
                     currentRow = 331; // Jump to top of bottom pip and leave gap between top and bottom pips
                 }
 
-                BOARD[col][row] = new Coordinates(currentColumn, currentRow);
+                BOARD[col][row] = new Coordinates(currentColumn, currentRow, 'E');
                 currentRow += VERTICAL_OFFSET;
             }
             currentRow = 91;
@@ -137,7 +137,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS); // Circle with coordinates
-            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             red.setStroke(Color.BLACK);
             red.setFill(effects.checkerRed);
             redCheckers[numReds] = new Checkers(red);
@@ -151,7 +151,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('R');
             red.setStroke(Color.BLACK);
             red.setFill(effects.checkerRed);
             redCheckers[numReds] = new Checkers(red);
@@ -166,7 +166,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('R');
             red.setStroke(Color.BLACK);
             red.setFill(effects.checkerRed);
             redCheckers[numReds] = new Checkers(red);
@@ -180,7 +180,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('R');
             red.setStroke(Color.BLACK);
             red.setFill(effects.checkerRed);
             redCheckers[numReds] = new Checkers(red);
@@ -198,7 +198,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('B');
             blue.setStroke(Color.BLACK);
             blue.setFill(effects.checkerBlue);
             blueCheckers[numBlues] = new Checkers(blue);
@@ -212,7 +212,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('B');
             blue.setStroke(Color.BLACK);
             blue.setFill(effects.checkerBlue);
             blueCheckers[numBlues] = new Checkers(blue);
@@ -226,7 +226,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip,0);
             Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('B');
             blue.setStroke(Color.BLACK);
             blue.setFill(effects.checkerBlue);
             blueCheckers[numBlues] = new Checkers(blue);
@@ -239,7 +239,7 @@ class BoardPanel {
         {
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate();
+            BoardPanel.BOARD[column][row].occupyCoordinate('B');
             blue.setStroke(Color.BLACK);
             blue.setFill(effects.checkerBlue);
             blueCheckers[numBlues] = new Checkers(blue);

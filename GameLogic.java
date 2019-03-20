@@ -65,11 +65,8 @@ class GameLogic {
             }
         }
 
-        for (Object eachObject : ownCheckersSet) { // Transferred to arrayList as it does not maintain the order elements are stored
-            ownCheckersArrayList.add((int) eachObject);
-            System.out.println(eachObject);
-        }
-        System.out.println("------------");
+        // Transferred to arrayList as it does not maintain the order elements are stored
+        for (Object eachObject : ownCheckersSet) ownCheckersArrayList.add((int) eachObject);
 
         return ownCheckersArrayList;
     }
