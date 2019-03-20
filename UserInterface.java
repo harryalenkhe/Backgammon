@@ -8,10 +8,7 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.rmi.dgc.Lease;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 class UserInterface extends VBox {
@@ -19,44 +16,50 @@ class UserInterface extends VBox {
     private static TextArea textArea;
     private BufferedImage emptyBoardImageFlipped;
     private static Image boardImageFlipped;
-    private int currentPlayer;
     private ArrayList<Integer> ownerCheckers;
     private ArrayList<Integer> MOVE_COUNT; // Has value of moves ( if a double move or single move )
-    private int[][] moveTo;
-    private int moveCountTotal = 0;
-    private boolean canBearOff = true;
     private ArrayList<String> LEGAL_MOVES;
     private ArrayList<Integer> FROM_PIPS;
     private ArrayList<Integer> TO_PIPS;
+    private int[][] moveTo;
+    private int moveCountTotal = 0;
+    private int currentPlayer;
+    private boolean canBearOff = true;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
         setTextArea();
         setTextField();
-        setUserInputConditions(primaryWindow);
+        gamePlay(primaryWindow);
         getChildren().addAll(textField, textArea);
     }
 
     private void makeMove(int fromPip, int toPip, int currentPlayer) {
         textField.setText("");
 
-        int fromColumn = BoardPanel.convertPipToColumn(fromPip); // Convert pip to be moved from to column index
-        int toColumn = BoardPanel.convertPipToColumn(toPip); // Convert pip to be moved to, to column index
-        int fromRow = BoardPanel.topCheckerInPip(fromColumn, fromPip, currentPlayer); // Get top checker position in column to be moved from
-        int toRow = BoardPanel.nextRow(toColumn, toPip, currentPlayer); // Get free position in column to be moved to
+        int fromColumn = GameLogic.convertPipToColumn(fromPip); // Convert pip to be moved from to column index
+        int toColumn = GameLogic.convertPipToColumn(toPip); // Convert pip to be moved to, to column index
+        int fromRow = GameLogic.topCheckerInPip(fromColumn, fromPip, currentPlayer); // Get top checker position in column to be moved from
+        int toRow = GameLogic.nextRow(toColumn, toPip, currentPlayer); // Get free position in column to be moved to
 
         Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn, fromRow, currentPlayer, fromPip);
+
+        // 3 types of moves can be made
         if (fromPip == 0) { // Moving from bar to board
             BoardPanel.BAR[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
-            BoardPanel.BOARD[toColumn][toRow].releaseCoordinate();
+            BoardPanel.BOARD[toColumn][toRow].releaseCoordinate(); // Precaution, release coordinate before moving
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
-        } if (toPip == 25) { // Moving from board to bear
+        }
+
+        if (toPip == 25) { // Moving from board to bear
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
             BoardPanel.BEAR[toColumn][toRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BEAR[toColumn][toRow].occupyCoordinate(); // Change position of checker to occupied
-        } else { // Moving from board to board
+        }
+
+        else { // Moving from board to board
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Change position of checker to be moved to unoccupied
             BoardPanel.BOARD[toColumn][toRow].releaseCoordinate(); // Pre-caution, make sure position to be moved is unoccupied
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
@@ -92,7 +95,7 @@ class UserInterface extends VBox {
         setLayoutX(630);
     }
 
-    private void setUserInputConditions(Stage primaryWindow) {
+    private void gamePlay(Stage primaryWindow) {
         textField.setOnAction(E -> {
             // Takes input of two numbers and splits into two indexes of array
             String moveOption = textField.getText().toUpperCase();
@@ -132,7 +135,7 @@ class UserInterface extends VBox {
             if (moveOption.trim().length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
 
-                moveCommand(option, primaryWindow);
+                moveCommand(option);
                 if (moveCountTotal == 2) { // two moves have been made
                     moveCountTotal = 0;
                 }
@@ -142,12 +145,17 @@ class UserInterface extends VBox {
                     moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
                     displayLegalMoves(moveTo);
                 }
+
+                if (GameLogic.getWinner() == Player.playerRed.getTurn() || GameLogic.getWinner() == Player.playerBlue.getTurn()) {
+                    GameFinish gameFinish = new GameFinish();
+                    primaryWindow.setScene(gameFinish.finishScene); // Show winner
+                }
             }
 
             if (textField.getText().equalsIgnoreCase("cheat")) {
                 textField.setText("");
                 textArea.setText("");
-                BoardPanel.setUpCheat();
+                cheatCommand();
                 ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
                 moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
                 displayLegalMoves(moveTo);
@@ -210,35 +218,173 @@ class UserInterface extends VBox {
         displayLegalMoves(moveTo);
     }
 
-    private void moveCommand(char option, Stage primaryWindow) {
+    private void cheatCommand() {
+
+        // Release all coordinates on board, bar and bear-off
+        for(int i = 0; i < 12; i++) {
+            for(int j = 0; j < 12; j++) {
+                BoardPanel.BOARD[i][j].releaseCoordinate();
+            }
+        }
+
+        for(int i = 0; i < 1; i++) {
+            for(int j = 0; j < 30; j++) {
+                BoardPanel.BEAR[i][j].releaseCoordinate();
+            }
+        }
+
+        for(int i = 0; i < 1; i++) {
+            for(int j = 0; j < 10; j++) {
+                BoardPanel.BAR[i][j].releaseCoordinate();
+            }
+        }
+
+        int numReds = 0;
+        int numBlues = 0;
+        int currentPip = 1; // PIP TO BE CONVERTED TO COLUMN
+        int column = GameLogic.convertPipToColumn(currentPip); // COLUMN OF PIP THAT WAS CONVERTED
+        int row;
+
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numReds++;
+        }
+
+        currentPip = 2;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numReds++;
+        }
+
+        currentPip = 3;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numReds++;
+        }
+
+        currentPip = 4;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numReds++;
+        }
+
+        currentPip = 5;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numReds++;
+        }
+
+        column = 0; // BAR RED
+        row = 0;
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 0);
+            BoardPanel.BAR[column][row].occupyCoordinate();
+            numReds++;
+            row++;
+        }
+
+        column = 0; // BEAR RED
+        row = 15;
+        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 25);
+            BoardPanel.BEAR[column][row].occupyCoordinate();
+            numReds++;
+            row++;
+        }
+
+        column = 0; // BAR BLUE
+        row = 5;
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 0);
+            BoardPanel.BAR[column][row].occupyCoordinate();
+            numBlues++;
+            row++;
+        }
+
+        column = 0; // BEAR BLUE
+        row = 0;
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 25);
+            BoardPanel.BEAR[column][row].occupyCoordinate();
+            numBlues++;
+            row++;
+        }
+
+
+        currentPip = 24;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numBlues++;
+        }
+
+        currentPip = 22;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numBlues++;
+        }
+
+        currentPip = 21;
+        column = GameLogic.convertPipToColumn(currentPip);
+        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate(); // Position now occupied
+            numBlues++;
+        }
+
+    }
+
+    private void moveCommand(char option) {
         textField.setText("");
         int index = option - 'A';
         if(index >= LEGAL_MOVES.size()) {
-            textArea.appendText("NOT A VALID OPTION\nTRY AGAIN\n");
+            textArea.appendText("NOT A VALID OPTION\nTRY AGAIN");
         }
 
         else {
-            int moveCount = MOVE_COUNT.get(index); // Get if the move is a double or single
+            moveCountTotal += MOVE_COUNT.get(index); // Get if the move is a double or single
             int fromPip = FROM_PIPS.get(index);
             int toPip = TO_PIPS.get(index);
             makeMove(fromPip, toPip, currentPlayer);
-            moveCountTotal += moveCount;
 
             if (currentPlayer == Player.playerRed.getTurn()) {
                 textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
                 if(moveCountTotal == 2) {
                     nextCommand();
-                    return;
                 }
             } else if (currentPlayer == Player.playerBlue.getTurn()){
                 textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
                 if(moveCountTotal == 2) {
                     nextCommand();
-                    return;
                 }
-            } if (BoardPanel.getWinner() == Player.playerRed.getTurn() || BoardPanel.getWinner() == Player.playerBlue.getTurn()) {
-                GameFinish gameFinish = new GameFinish();
-                primaryWindow.setScene(gameFinish.finishScene);
             }
         }
     }
@@ -263,13 +409,13 @@ class UserInterface extends VBox {
                 else if(ints[3] == 0) { // Store as separate moves
                     LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
                     FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(25);
+                    TO_PIPS.add(25); // Bear off pip positions is 25
                     MOVE_COUNT.add(2);
 
                     LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - Off");
                     FROM_PIPS.add(ints[0]);
                     TO_PIPS.add(25);
-                    MOVE_COUNT.add(2);
+                    MOVE_COUNT.add(2); // Move using two dice rolls counts as two moves
                 }
 
                 else {
@@ -332,8 +478,8 @@ class UserInterface extends VBox {
         }
 
         if(LEGAL_MOVES.size() == 1) {
-            // move with that only move
-            nextCommand();
+            moveCommand('A'); // Make move with the forced legal move
+            nextCommand(); // Pass
         }
 
         else {
