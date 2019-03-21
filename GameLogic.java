@@ -71,7 +71,7 @@ class GameLogic {
         return ownCheckersArrayList;
     }
 
-    static int[][] findMoveTo(ArrayList<Integer> ownerCheckers) {
+    static int[][] findMoveTo(ArrayList<Integer> ownerCheckers, int currentPlayer) {
         int[][] moveTo = new int[ownerCheckers.size()][4];
         for (int index = 0; index < ownerCheckers.size(); index++) {
 
@@ -94,13 +94,31 @@ class GameLogic {
 
             // Store any moves with pips less than 0 as 0
             if(singleToPip1 <= 0) moveTo[index][1] = 0;
-            else moveTo[index][1] = singleToPip1;
+            else {
+                if(isLegalMove(singleToPip1, currentPlayer)) {
+                    moveTo[index][1] = singleToPip1;
+                } else {
+                    moveTo[index][1] = 0;
+                }
+            }
 
             if(singleToPip2 <= 0) moveTo[index][2] = 0;
-            else moveTo[index][2] = singleToPip2;
+            else {
+                if(isLegalMove(singleToPip2, currentPlayer)) {
+                    moveTo[index][2] = singleToPip2;
+                } else {
+                    moveTo[index][2] = 0;
+                }
+            }
 
             if(doubleToPip <= 0) moveTo[index][3] = 0;
-            else moveTo[index][3] = doubleToPip;
+            else {
+                if(isLegalMove(doubleToPip, currentPlayer)) {
+                    moveTo[index][3] = doubleToPip;
+                } else {
+                    moveTo[index][3] = 0;
+                }
+            }
         }
         return moveTo;
     }
@@ -312,5 +330,54 @@ class GameLogic {
             return Player.playerBlue.getTurn();
         }
         return 0;
+    }
+
+    private static boolean isLegalMove(int pip, int currentPlayer) {
+        int columnOfPip;
+        int freeRowInPip;
+        char colourOfPosition;
+        boolean legalMove = false;
+
+        // First convert pip to column
+        columnOfPip = convertPipToColumn(pip);
+        // Second, find free row in that pip
+        freeRowInPip = nextRow(columnOfPip,pip,currentPlayer);
+
+        // Third, Check if top half or bottom half
+        if(freeRowInPip < 6) { // Top half
+            if(freeRowInPip == 0) { // If pip is empty
+                colourOfPosition = 'E';
+            } else { // If not empty, check colour of checker
+                // We check the position before the free row to get the colour of the checker
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip-1].getPlayer();
+            }
+        } else { // Bottom half
+            if(freeRowInPip == 11) { // If pip is empty
+                colourOfPosition = 'E';
+            } else { // If not empty
+                // We check the position before the free row to get the colour of the checker
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip+1].getPlayer();
+            }
+        }
+
+        if(colourOfPosition == 'E') {
+            return true;
+        } else {
+            // Fourth, Check if colour matches current players checker
+            if (currentPlayer == Player.playerRed.getTurn()) {
+                if (colourOfPosition == 'R') { // Own checker
+                    legalMove = true;
+                } else if (colourOfPosition == 'B') { // Not own checker
+                    legalMove = (freeRowInPip == 10 || freeRowInPip == 1);
+                }
+            } else if (currentPlayer == Player.playerBlue.getTurn()) {
+                if (colourOfPosition == 'B') { // Own checker
+                    legalMove = true;
+                } else if (colourOfPosition == 'R') {
+                    legalMove = (freeRowInPip == 10 || freeRowInPip == 1);
+                }
+            }
+            return legalMove;
+        }
     }
 }

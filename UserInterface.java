@@ -143,7 +143,7 @@ class UserInterface extends VBox {
 
                 if (moveCountTotal == 1) {
                     ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                    moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
+                    moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer); // Display moves for next dice roll;
                     displayLegalMoves(moveTo);
                 }
 
@@ -158,7 +158,7 @@ class UserInterface extends VBox {
                 textArea.setText("");
                 cheatCommand();
                 ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                moveTo = GameLogic.findMoveTo(ownerCheckers); // Display moves for next dice roll;
+                moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer); // Display moves for next dice roll;
                 displayLegalMoves(moveTo);
             }
 
@@ -195,7 +195,7 @@ class UserInterface extends VBox {
         } while (Dice.roll1 == Dice.roll2); // Roll to see who goes first
 
         ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-        moveTo = GameLogic.findMoveTo(ownerCheckers);
+        moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer);
         displayLegalMoves(moveTo);
     }
 
@@ -215,7 +215,7 @@ class UserInterface extends VBox {
         }
 
         ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-        moveTo = GameLogic.findMoveTo(ownerCheckers);
+        moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer);
         displayLegalMoves(moveTo);
     }
 
