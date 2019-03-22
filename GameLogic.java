@@ -11,7 +11,7 @@ class GameLogic {
         Set<Integer> ownCheckersSet = new HashSet<>(); // Used to store unique values only
         ArrayList<Integer> ownCheckersArrayList = new ArrayList<>();
 
-        if (currentPlayer == Player.playerRed.getTurn()) { // If red players turn
+        if (currentPlayer == Player.playerRed.getTurn()) { // If its the red players turn
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.redCheckers[index].getCircleX();
                 checkerY = BoardPanel.redCheckers[index].getCircleY();
@@ -38,7 +38,7 @@ class GameLogic {
             }
         }
 
-        if (currentPlayer == Player.playerBlue.getTurn()) { // If blue players turn
+        if (currentPlayer == Player.playerBlue.getTurn()) { // If its the blue players turn
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.blueCheckers[index].getCircleX();
                 checkerY = BoardPanel.blueCheckers[index].getCircleY();
@@ -54,12 +54,12 @@ class GameLogic {
 
                     if (checkerY <= 241) { // If top half of board
                         pip = Math.abs(column - 12);
-                        ownCheckersSet.add(pip); // Store pip in array
+                        ownCheckersSet.add(pip); // Store the pip in array
                     }
 
                     else if (checkerY > 241) { // If bottom half of board
                         pip = column + 13;
-                        ownCheckersSet.add(pip); // Store pip in array
+                        ownCheckersSet.add(pip); // Store the pip in array
                     }
                 }
             }
@@ -101,6 +101,7 @@ class GameLogic {
                 if(isLegalMove(singleToPip1, currentPlayer)) { // If its a legal move
                     System.out.println(startPip + " to " + singleToPip1 + " is a legal move");
                     moveTo[index][1] = singleToPip1;
+
                 } else { // If its not a legal move
                     moveTo[index][1] = -1;
                 }
@@ -206,7 +207,7 @@ class GameLogic {
                         break;
                     }
 
-                    if(rowCheck == 6) { // Pip is full with 6 checkers
+                    if(rowCheck == 6) { // The Pip is full with 6 checkers
                         break;
                     }
                 }
@@ -219,7 +220,7 @@ class GameLogic {
                         break;
                     }
 
-                    if(rowCheck == 5) { // Pip is full with 6 checkers
+                    if(rowCheck == 5) { // The Pip is full with 6 checkers
                         break;
                     }
                 }

@@ -43,7 +43,7 @@ class BoardPanel {
     
     private void setGameComponents() {
         gameComponents.getChildren().addAll(gameView, UI, dice);
-        for (int i = 0; i < 15; i++) { // Add checkers to board
+        for (int i = 0; i < 15; i++) { // Adding checkers to the board
             gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle());
         }
     }
@@ -64,7 +64,7 @@ class BoardPanel {
 
     private void setBoardImage() {
         try {
-            emptyBoardImage = ImageIO.read(this.getClass().getResource("/images/empty_board.jpg"));
+            emptyBoardImage = ImageIO.read(this.getClass().getResource("/empty_board.jpg"));
         } catch (IOException ex) {
             System.out.println("Image not showing / not found " + ex.toString());
         }
@@ -105,13 +105,13 @@ class BoardPanel {
         final double HORIZONTAL_OFFSET = 33.35;
 
         for(int col = 0; col < 12; col++) {
-            if (col == 6) { // Skip the bar and go to next pip
+            if (col == 6) { // Skip the bar and go on to the next pip
                 currentColumn = 375.8;
             }
 
             for(int row = 0; row < 12; row++) {
                 if (row == 6) {
-                    currentRow = 331; // Jump to top of bottom pip and leave gap between top and bottom pips
+                    currentRow = 331; // Jump to the top of the bottom pip and leave a gap between top and bottom pips
                 }
 
                 BOARD[col][row] = new Coordinates(currentColumn, currentRow, 'E');
@@ -129,8 +129,8 @@ class BoardPanel {
 
     private void createRedCheckers() {
         int numReds = 0;
-        int currentPip = 13; // PIP TO BE CONVERTED TO COLUMN
-        int column = GameLogic.convertPipToColumn(currentPip); // COLUMN OF PIP THAT WAS CONVERTED
+        int currentPip = 13; // THE PIP TO BE CONVERTED TO COLUMN
+        int column = GameLogic.convertPipToColumn(currentPip); // THE COLUMN OF THE PIP THAT WAS CONVERTED
         int row;
 
         for(int numCheckersInPip = 0; numCheckersInPip < 5; numCheckersInPip++) // Counts the checkers
