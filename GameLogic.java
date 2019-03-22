@@ -66,7 +66,9 @@ class GameLogic {
         }
 
         // Transferred to arrayList as it does not maintain the order elements are stored
-        for (Object eachObject : ownCheckersSet) ownCheckersArrayList.add((int) eachObject);
+        for (Object eachObject : ownCheckersSet) {
+            ownCheckersArrayList.add((int) eachObject);
+        }
 
         return ownCheckersArrayList;
     }
@@ -92,31 +94,35 @@ class GameLogic {
 
             moveTo[index][0] = startPip; // store starting pip
 
+            // NEEDS TO BE FIXED
             // Store any moves with pips less than 0 as 0
             if(singleToPip1 <= 0) moveTo[index][1] = 0;
-            else {
-                if(isLegalMove(singleToPip1, currentPlayer)) {
+            else { // If pip is between 24-0
+                if(isLegalMove(singleToPip1, currentPlayer)) { // If its a legal move
+                    System.out.println(startPip + " to " + singleToPip1 + " is a legal move");
                     moveTo[index][1] = singleToPip1;
-                } else {
-                    moveTo[index][1] = 0;
+                } else { // If its not a legal move
+                    moveTo[index][1] = -1;
                 }
             }
 
             if(singleToPip2 <= 0) moveTo[index][2] = 0;
             else {
                 if(isLegalMove(singleToPip2, currentPlayer)) {
+                    System.out.println(startPip + " to " + singleToPip2 + " is a legal move");
                     moveTo[index][2] = singleToPip2;
                 } else {
-                    moveTo[index][2] = 0;
+                    moveTo[index][2] = -1;
                 }
             }
 
             if(doubleToPip <= 0) moveTo[index][3] = 0;
             else {
                 if(isLegalMove(doubleToPip, currentPlayer)) {
+                    System.out.println(startPip + " to " + doubleToPip + " is a legal move");
                     moveTo[index][3] = doubleToPip;
-                } else {
-                    moveTo[index][3] = 0;
+                } else if (moveTo[index][1] == -1 && moveTo[index][2] == -1) {
+                    moveTo[index][3] = -1;
                 }
             }
         }
@@ -349,14 +355,14 @@ class GameLogic {
                 colourOfPosition = 'E';
             } else { // If not empty, check colour of checker
                 // We check the position before the free row to get the colour of the checker
-                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip-1].getPlayer();
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip - 1].getPlayer();
             }
         } else { // Bottom half
             if(freeRowInPip == 11) { // If pip is empty
                 colourOfPosition = 'E';
             } else { // If not empty
                 // We check the position before the free row to get the colour of the checker
-                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip+1].getPlayer();
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip + 1].getPlayer();
             }
         }
 

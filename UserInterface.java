@@ -26,7 +26,7 @@ class UserInterface extends VBox {
     private int[][] moveTo;
     private int moveCountTotal = 0;
     private int currentPlayer;
-    private boolean canBearOff = false;
+    private boolean canBearOff = true;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -397,91 +397,212 @@ class UserInterface extends VBox {
 
         textArea.appendText("Available moves:\n");
         for (int[] ints : moveTo) {
-            if (canBearOff) { // CAN BEAR OFF
-                if (ints[1] == 0 || ints[2] == 0) {  // SINGLE BEAR-OFF MOVE
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(25);
-                    MOVE_COUNT.add(1);
-                } else if (ints[3] == 0) { // DOUBLE BEAR-OFF MOVE
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(25); // Bear off pip positions is 25
-                    MOVE_COUNT.add(2);
+            if(canBearOff) { // Can bear off
+                if(ints[1] != 0 && ints[2] != 0 && ints[3] != 0) { // Board to board
+                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
+                        break;
+                    }
+                    else { //Legal moves available
+                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // All legal moves
+                            LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                            FROM_PIPS.add(ints[0]);
+                            TO_PIPS.add(ints[3]);
+                            MOVE_COUNT.add(2);
+                        }
 
-                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - Off");
-                    FROM_PIPS.add(ints[0]);
-                    TO_PIPS.add(25);
-                    MOVE_COUNT.add(2); // Move using two dice rolls counts as two moves
-                } else { // NON BEAR-OFF MOVE
-                    if (ints[0] == 0) { // BAR-TO-BOARD MOVE
-                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                        else { // Some legal moves
+                            if(ints[3] == -1) { // No double moves
+                                if(ints[1] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[1]);
+                                    MOVE_COUNT.add(1);
+                                }
+                                if(ints[2] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[2]);
+                                    MOVE_COUNT.add(1);
+                                }
+                            }
+                            else { // Double moves
+                                if(ints[1] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[3]);
+                                    MOVE_COUNT.add(2);
+                                }
+                                if(ints[2] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[3]);
+                                    MOVE_COUNT.add(2);
+                                }
+                            }
+                        }
+                    }
+                }
+                else { // Board-off move
+                    if(ints[1] == 0 && ints[2] == 0 && ints[3] == 0) { // All bear offs
+                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
                         FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-
-                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-                    } else { // BOARD-TO-BOARD MOVE
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
+                        TO_PIPS.add(25);
+                        MOVE_COUNT.add(1);
+                    }
+                    else { // Not all bear offs
+                        if(ints[3] != 0) { // Single moves
+                            if(ints[1] == 0) {
+                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
+                                FROM_PIPS.add(ints[0]);
+                                TO_PIPS.add(25);
+                                MOVE_COUNT.add(1);
+                            }
+                            if(ints[2] == 0) {
+                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
+                                FROM_PIPS.add(ints[0]);
+                                TO_PIPS.add(25);
+                                MOVE_COUNT.add(1);
+                            }
+                        }
+                        else { // Double moves
+                            if(ints[1] != 0 && ints[1] != -1) {
+                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
+                                FROM_PIPS.add(ints[0]);
+                                TO_PIPS.add(25);
+                                MOVE_COUNT.add(2);
+                            }
+                            else if(ints[2] != 0 && ints[2] != -1) {
+                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - Off");
+                                FROM_PIPS.add(ints[0]);
+                                TO_PIPS.add(25);
+                                MOVE_COUNT.add(2);
+                            }
+                        }
                     }
                 }
             }
 
-            if (!canBearOff) { // cant bear off
-                if (ints[3] != 0) { // NON BEAR-OFF MOVE
-                    if (ints[0] == 0) { // BAR-TO-BOARD MOVE
-                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-
-                        LEGAL_MOVES.add(letter++ + ": BAR - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-                    } else { // BOARD-TO-BOARD MOVE
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
-
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[3]);
-                        MOVE_COUNT.add(2);
+            if(!canBearOff) { // Can't bear off
+                if(ints[0] == 0) { // if a bar to board move
+                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
+                        break;
                     }
-                } else {
-                    if (ints[1] != 0 && ints[2] != 0) {
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[1]);
-                        MOVE_COUNT.add(1);
+                    else { // if legal moves are available
+                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // If all are legal moves
+                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1]);
+                            FROM_PIPS.add(0);
+                            TO_PIPS.add(ints[1]);
+                            MOVE_COUNT.add(1);
 
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[2]);
-                        MOVE_COUNT.add(1);
-                    } else if (ints[1] == 0) {
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[2]);
-                        MOVE_COUNT.add(1);
-                    } else {
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(ints[1]);
-                        MOVE_COUNT.add(1);
+                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2]);
+                            FROM_PIPS.add(0);
+                            TO_PIPS.add(ints[2]);
+                            MOVE_COUNT.add(1);
+
+                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1] + " " + ints[1] + " - " + ints[3]);
+                            FROM_PIPS.add(0);
+                            TO_PIPS.add(ints[3]);
+                            MOVE_COUNT.add(2);
+
+                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2] + " " + ints[2] + " - " + ints[3]);
+                            FROM_PIPS.add(0);
+                            TO_PIPS.add(ints[3]);
+                            MOVE_COUNT.add(2);
+                        }
+                        else { // Some legal moves
+                            if(ints[3] == -1) { // No double moves
+                                if(ints[1] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1]);
+                                    FROM_PIPS.add(0);
+                                    TO_PIPS.add(ints[1]);
+                                    MOVE_COUNT.add(1);
+                                }
+                                if(ints[2] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2]);
+                                    FROM_PIPS.add(0);
+                                    TO_PIPS.add(ints[2]);
+                                    MOVE_COUNT.add(1);
+                                }
+                            }
+                            else { // Double moves
+                                if(ints[1] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1] + " " + ints[1] + " - " + ints[3]);
+                                    FROM_PIPS.add(0);
+                                    TO_PIPS.add(ints[3]);
+                                    MOVE_COUNT.add(2);
+                                }
+                                if(ints[2] != -1) {
+                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2] + " " + ints[2] + " - " + ints[3]);
+                                    FROM_PIPS.add(0);
+                                    TO_PIPS.add(ints[3]);
+                                    MOVE_COUNT.add(2);
+                                }
+                            }
+                        }
+                    }
+                }
+                else { // if a board-board move
+                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
+                        break;
+                    }
+                    else { // Legal moves available
+                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // All legal moves
+                            if(ints[3] == 0) { // Single moves
+                                if(ints[1] == 0) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[2]);
+                                    MOVE_COUNT.add(1);
+                                }
+                                if(ints[2] == 0) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[1]);
+                                    MOVE_COUNT.add(1);
+                                }
+                            }
+                            else { // Double moves
+                                if(ints[1] != 0 || ints[2] != 0) { // Remove duplicates
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[3]);
+                                    MOVE_COUNT.add(2);
+                                }
+                            }
+                        }
+
+                        else { // Some legal moves // NEEDS TO BE FIXED ///////
+                            if(ints[3] == -1) { // No double moves
+                                if(ints[1] != -1 && ints[1] != 0) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[1]);
+                                    MOVE_COUNT.add(1);
+                                }
+                                if(ints[2] != -1 && ints[2] != 0) {
+                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
+                                    FROM_PIPS.add(ints[0]);
+                                    TO_PIPS.add(ints[2]);
+                                    MOVE_COUNT.add(1);
+                                }
+                            }
+                            else { // Double moves
+                                if(ints[3] != 0) {
+                                    if(ints[1] != -1) {
+                                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
+                                        FROM_PIPS.add(ints[0]);
+                                        TO_PIPS.add(ints[3]);
+                                        MOVE_COUNT.add(2);
+                                    }
+                                    if(ints[2] != -1) {
+                                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
+                                        FROM_PIPS.add(ints[0]);
+                                        TO_PIPS.add(ints[3]);
+                                        MOVE_COUNT.add(2);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -616,5 +737,4 @@ class UserInterface extends VBox {
 //        return canBearOff;
 //    }
 }
-
 
