@@ -74,7 +74,7 @@ class GameLogic {
     }
 
     static int[][] findMoveTo(ArrayList<Integer> ownerCheckers, int currentPlayer) {
-        int[][] moveTo = new int[ownerCheckers.size()][4];
+        int[][] moveTo = new int[ownerCheckers.size()][6];
         for (int index = 0; index < ownerCheckers.size(); index++) {
 
             // First assign variables to pips moved to from dice rolls
@@ -82,154 +82,279 @@ class GameLogic {
             int singleToPip1 = startPip - (Dice.roll1);
             int singleToPip2 = startPip - (Dice.roll2);
             int doubleToPip = startPip - (Dice.roll1 + Dice.roll2);
+            int tripleToPip;
+            int quadToPip;
+            if(UserInterface.doubleRolled) {
+                tripleToPip = startPip - (Dice.roll1*3);
+                quadToPip = startPip - (Dice.roll1*4);
+            } else {
+                tripleToPip = -1;
+                quadToPip = -1;
+            }
 
             moveTo[index][0] = startPip; // store starting pip
 
             if (canBearOff()) {
                 if (singleToPip1 <= 0) { // SINGLE bear off move
-                    singleToPip1 = 0;
-                    doubleToPip = 0;
+                    singleToPip1 = doubleToPip = tripleToPip = quadToPip = 0;
                     moveTo[index][1] = singleToPip1;
                     moveTo[index][3] = doubleToPip;
-                }
-                else {
+                    moveTo[index][4] = tripleToPip;
+                    moveTo[index][5] = quadToPip;
+                } else {
                     if (isLegalMove(singleToPip1, currentPlayer)) { // If legal
                         moveTo[index][1] = singleToPip1; // Store
                         if (doubleToPip <= 0) {
-                            doubleToPip = 0;
+                            doubleToPip = tripleToPip = quadToPip = 0;
                             moveTo[index][3] = doubleToPip;
+                            moveTo[index][4] = tripleToPip;
+                            moveTo[index][5] = quadToPip;
                         } else {
-                            if(isLegalMove(doubleToPip, currentPlayer)) {
+                            if (isLegalMove(doubleToPip, currentPlayer)) {
                                 moveTo[index][3] = doubleToPip;
+                                if (tripleToPip <= 0) {
+                                    tripleToPip = quadToPip = 0;
+                                    moveTo[index][4] = tripleToPip;
+                                    moveTo[index][5] = quadToPip;
+                                } else {
+                                    if (isLegalMove(tripleToPip, currentPlayer)) {
+                                        moveTo[index][4] = tripleToPip;
+                                        if (quadToPip <= 0) {
+                                            quadToPip = 0;
+                                            moveTo[index][5] = quadToPip;
+                                        } else {
+                                            if (isLegalMove(quadToPip, currentPlayer)) {
+                                                moveTo[index][5] = quadToPip;
+                                            } else {
+                                                quadToPip = -1;
+                                                moveTo[index][5] = quadToPip;
+                                            }
+                                        }
+                                    } else {
+                                        tripleToPip = quadToPip = -1;
+                                        moveTo[index][4] = tripleToPip;
+                                        moveTo[index][5] = quadToPip;
+                                    }
+                                }
                             } else {
-                                doubleToPip = -1;
+                                doubleToPip = tripleToPip = quadToPip = -1;
                                 moveTo[index][3] = doubleToPip;
+                                moveTo[index][4] = tripleToPip;
+                                moveTo[index][5] = quadToPip;
                             }
                         }
                     } else {
-                        singleToPip1 = -1;
-                        doubleToPip = -1;
+                        singleToPip1 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][1] = singleToPip1;
                         moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     }
                 }
 
 
-                if (singleToPip2 <= 0) { // Bear off
-                    singleToPip2 = 0; // If one dice roll moves the checker to bear off
-                    doubleToPip = 0; // Two dice rolls will definietely move checker to bear off
+                if (singleToPip2 <= 0) { // SINGLE bear off move
+                    singleToPip2 = doubleToPip = tripleToPip = quadToPip = 0;
                     moveTo[index][2] = singleToPip2;
                     moveTo[index][3] = doubleToPip;
-                }
-                else { // Non bear-off
-                    if (isLegalMove(singleToPip2, currentPlayer)) { // Legal move
-                        moveTo[index][2] = singleToPip2;
-                        if (doubleToPip <= 0) { // If two dice rolls moves checker to bear off
-                            doubleToPip = 0;
+                    moveTo[index][4] = tripleToPip;
+                    moveTo[index][5] = quadToPip;
+                } else {
+                    if (isLegalMove(singleToPip2, currentPlayer)) { // If legal
+                        moveTo[index][2] = singleToPip2; // Store
+                        if (doubleToPip <= 0) {
+                            doubleToPip = tripleToPip = quadToPip = 0;
                             moveTo[index][3] = doubleToPip;
+                            moveTo[index][4] = tripleToPip;
+                            moveTo[index][5] = quadToPip;
                         } else {
-                            if(isLegalMove(doubleToPip, currentPlayer)) {
+                            if (isLegalMove(doubleToPip, currentPlayer)) {
                                 moveTo[index][3] = doubleToPip;
+                                if (tripleToPip <= 0) {
+                                    tripleToPip = quadToPip = 0;
+                                    moveTo[index][4] = tripleToPip;
+                                    moveTo[index][5] = quadToPip;
+                                } else {
+                                    if (isLegalMove(tripleToPip, currentPlayer)) {
+                                        moveTo[index][4] = tripleToPip;
+                                        if (quadToPip <= 0) {
+                                            quadToPip = 0;
+                                            moveTo[index][5] = quadToPip;
+                                        } else {
+                                            if (isLegalMove(quadToPip, currentPlayer)) {
+                                                moveTo[index][5] = quadToPip;
+                                            } else {
+                                                quadToPip = -1;
+                                                moveTo[index][5] = quadToPip;
+                                            }
+                                        }
+                                    } else {
+                                        tripleToPip = quadToPip = -1;
+                                        moveTo[index][4] = tripleToPip;
+                                        moveTo[index][5] = quadToPip;
+                                    }
+                                }
                             } else {
-                                doubleToPip = -1;
+                                doubleToPip = tripleToPip = quadToPip = -1;
                                 moveTo[index][3] = doubleToPip;
+                                moveTo[index][4] = tripleToPip;
+                                moveTo[index][5] = quadToPip;
                             }
                         }
-                    } else { // Not a legal move
-                        singleToPip2 = -1;
-                        doubleToPip = -1; // If one dice roll move is not legal, then no legal moves
+                    } else {
+                        singleToPip2 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][2] = singleToPip2;
                         moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     }
                 }
-
             }
 
             else { //CANT BEAR OFF
                 if(startPip != 25) { // Moving from board
                     if (singleToPip1 <= 0) { // bear off move
-                        singleToPip1 = -1;
-                        doubleToPip = -1;
+                        singleToPip1 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][1] = singleToPip1;
                         moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     } else { // Non bear off move
-                        if (isLegalMove(singleToPip1, currentPlayer)) {
-                            moveTo[index][1] = singleToPip1;
-                            if (doubleToPip <= 0) {
-                                doubleToPip = -1; // Illegal
+                        if (isLegalMove(singleToPip1, currentPlayer)) { // If legal
+                            moveTo[index][1] = singleToPip1; // Store
+                            if (doubleToPip <= 0) { // If bear off
+                                doubleToPip = tripleToPip = quadToPip = -1; // illegal
                                 moveTo[index][3] = doubleToPip;
-                            } else {
-                                if(isLegalMove(doubleToPip, currentPlayer)) {
+                                moveTo[index][4] = tripleToPip;
+                                moveTo[index][5] = quadToPip;
+                            } else { // non bear off
+                                if (isLegalMove(doubleToPip, currentPlayer)) { // legal
+                                    moveTo[index][3] = doubleToPip; // store
+                                    if (tripleToPip <= 0) { // if bear off
+                                        tripleToPip = quadToPip = -1; // illegal
+                                        moveTo[index][4] = tripleToPip;
+                                        moveTo[index][5] = quadToPip;
+                                    } else { // non bear off
+                                        if (isLegalMove(tripleToPip, currentPlayer)) { // legal
+                                            moveTo[index][4] = tripleToPip; // store
+                                            if (quadToPip <= 0) { // if bear off
+                                                quadToPip = -1;
+                                                moveTo[index][5] = quadToPip;
+                                            } else { // not bear off
+                                                if (isLegalMove(quadToPip, currentPlayer)) { // legal
+                                                    moveTo[index][5] = quadToPip;
+                                                } else { // not legal
+                                                    quadToPip = -1;
+                                                    moveTo[index][5] = quadToPip;
+                                                }
+                                            }
+                                        } else { // not legal
+                                            tripleToPip = quadToPip = -1;
+                                            moveTo[index][4] = tripleToPip;
+                                            moveTo[index][5] = quadToPip;
+                                        }
+                                    }
+                                } else { // not legal
+                                    doubleToPip = tripleToPip = quadToPip = -1;
                                     moveTo[index][3] = doubleToPip;
-                                } else {
-                                    doubleToPip = -1;
-                                    moveTo[index][3] = doubleToPip;
+                                    moveTo[index][4] = tripleToPip;
+                                    moveTo[index][5] = quadToPip;
                                 }
                             }
-                        } else {
-                            singleToPip1 = -1;
-                            doubleToPip = -1;
+                        } else { // not legal
+                            singleToPip1 = doubleToPip = tripleToPip = quadToPip = -1;
                             moveTo[index][1] = singleToPip1;
                             moveTo[index][3] = doubleToPip;
+                            moveTo[index][4] = tripleToPip;
+                            moveTo[index][5] = quadToPip;
                         }
                     }
 
                     if (singleToPip2 <= 0) { // bear off move
-                        singleToPip2 = -1;
-                        doubleToPip = -1;
+                        singleToPip2 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][2] = singleToPip2;
                         moveTo[index][3] = doubleToPip;
-                    } else {
-                        if (isLegalMove(singleToPip2, currentPlayer)) {
-                            moveTo[index][2] = singleToPip2;
-                            if (doubleToPip <= 0) {
-                                doubleToPip = -1; // Illegal
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
+                    } else { // Non bear off move
+                        if (isLegalMove(singleToPip2, currentPlayer)) { // If legal
+                            moveTo[index][2] = singleToPip2; // Store
+                            if (doubleToPip <= 0) { // If bear off
+                                doubleToPip = tripleToPip = quadToPip = -1; // illegal
                                 moveTo[index][3] = doubleToPip;
-                            } else {
-                                if(isLegalMove(doubleToPip, currentPlayer)) {
+                                moveTo[index][4] = tripleToPip;
+                                moveTo[index][5] = quadToPip;
+                            } else { // non bear off
+                                if (isLegalMove(doubleToPip, currentPlayer)) { // legal
+                                    moveTo[index][3] = doubleToPip; // store
+                                    if (tripleToPip <= 0) { // if bear off
+                                        tripleToPip = quadToPip = -1; // illegal
+                                        moveTo[index][4] = tripleToPip;
+                                        moveTo[index][5] = quadToPip;
+                                    } else { // non bear off
+                                        if (isLegalMove(tripleToPip, currentPlayer)) { // legal
+                                            moveTo[index][4] = tripleToPip; // store
+                                            if (quadToPip <= 0) { // if bear off
+                                                quadToPip = -1;
+                                                moveTo[index][5] = quadToPip;
+                                            } else { // not bear off
+                                                if (isLegalMove(quadToPip, currentPlayer)) { // legal
+                                                    moveTo[index][5] = quadToPip;
+                                                } else { // not legal
+                                                    quadToPip = -1;
+                                                    moveTo[index][5] = quadToPip;
+                                                }
+                                            }
+                                        } else { // not legal
+                                            tripleToPip = quadToPip = -1;
+                                            moveTo[index][4] = tripleToPip;
+                                            moveTo[index][5] = quadToPip;
+                                        }
+                                    }
+                                } else { // not legal
+                                    doubleToPip = tripleToPip = quadToPip = -1;
                                     moveTo[index][3] = doubleToPip;
-                                } else {
-                                    doubleToPip = -1;
-                                    moveTo[index][3] = doubleToPip;
+                                    moveTo[index][4] = tripleToPip;
+                                    moveTo[index][5] = quadToPip;
                                 }
                             }
-                        } else {
-                            singleToPip2 = -1;
-                            doubleToPip = -1;
+                        } else { // not legal
+                            singleToPip2 = doubleToPip = tripleToPip = quadToPip = -1;
                             moveTo[index][2] = singleToPip2;
                             moveTo[index][3] = doubleToPip;
+                            moveTo[index][4] = tripleToPip;
+                            moveTo[index][5] = quadToPip;
                         }
                     }
                 }
-                else { // Moving from bar
+                
+                else { // Moving from bar, can only move from bar until all checkers are off bar
                     if(isLegalMove(singleToPip1, currentPlayer)) {
                         moveTo[index][1] = singleToPip1;
-                        if(isLegalMove(doubleToPip, currentPlayer)) {
-                            moveTo[index][3] = doubleToPip;
-                        } else {
-                            doubleToPip = -1;
-                            moveTo[index][3] = doubleToPip;
-                        }
+                        doubleToPip = tripleToPip = quadToPip = -1;
+                        moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     } else {
-                        singleToPip1 = -1;
-                        doubleToPip = -1;
+                        singleToPip1 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][1] = singleToPip1;
                         moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     }
 
                     if(isLegalMove(singleToPip2, currentPlayer)) {
                         moveTo[index][2] = singleToPip2;
-                        if(isLegalMove(doubleToPip, currentPlayer)) {
-                            moveTo[index][3] = doubleToPip;
-                        } else {
-                            doubleToPip = -1;
-                            moveTo[index][3] = doubleToPip;
-                        }
+                        doubleToPip = tripleToPip = quadToPip = -1;
+                        moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     } else {
-                        singleToPip2 = -1;
-                        doubleToPip = -1;
+                        singleToPip2 = doubleToPip = tripleToPip = quadToPip = -1;
                         moveTo[index][2] = singleToPip2;
                         moveTo[index][3] = doubleToPip;
+                        moveTo[index][4] = tripleToPip;
+                        moveTo[index][5] = quadToPip;
                     }
                 }
 

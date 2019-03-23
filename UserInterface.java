@@ -497,7 +497,6 @@ class UserInterface extends VBox {
             doubleRolled = false;
         }
     }
-
 //    private boolean isCanBearOff(int currentPlayer) {
 //        char currentPlayerColour;
 //        int column;
