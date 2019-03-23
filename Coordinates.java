@@ -2,14 +2,14 @@ class Coordinates {
 
     private double x; // column
     private double y; // row
-    private char player;
+    private char playerColour;
     private boolean taken;
 
 
-    Coordinates(double column, double row, char player) {
+    Coordinates(double column, double row, char playerColour) {
         this.x = column;
         this.y = row;
-        this.player = player;
+        this.playerColour = playerColour;
         this.taken = false;
     }
 
@@ -17,24 +17,19 @@ class Coordinates {
 
     double getY() { return this.y; }
 
-    char getPlayer() {
-        return this.player;
+    char getPlayerColour() {
+        return this.playerColour;
     }
 
-    void setPlayer(char player) {
-        this.player = player;
-    }
-
-    void occupyCoordinate(char player)
+    void occupyCoordinate(char playerColour)
     {
         this.taken = true;
-        this.player = player;
+        this.playerColour = playerColour;
     }
 
-    void releaseCoordinate()
-    {
+    void releaseCoordinate() {
         this.taken = false;
-        this.player = 'E';
+        this.playerColour = 'E';
     }
 
     boolean isTaken() { return this.taken; }

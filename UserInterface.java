@@ -26,7 +26,7 @@ class UserInterface extends VBox {
     private int[][] moveTo;
     private int moveCountTotal = 0;
     private int currentPlayer;
-    private boolean canBearOff = true;
+    static boolean doubleRolled = false;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -39,29 +39,35 @@ class UserInterface extends VBox {
     private void makeMove(int fromPip, int toPip, int currentPlayer) {
         textField.setText("");
 
-        int fromColumn = GameLogic.convertPipToColumn(fromPip); // Convert pip to be moved from to column index
-        int toColumn = GameLogic.convertPipToColumn(toPip); // Convert pip to be moved to, to column index
-        int fromRow = GameLogic.topCheckerInPip(fromColumn, fromPip, currentPlayer); // Get top checker position in column to be moved from
-        int toRow = GameLogic.nextRow(toColumn, toPip, currentPlayer); // Get free position in column to be moved to
+        int fromColumn = GameLogic.convertPipToColumn(fromPip);
+        int toColumn = GameLogic.convertPipToColumn(toPip);
+        int fromRow = GameLogic.nextRow(fromColumn, fromPip, currentPlayer);
+        if(fromRow < 6) {
+            fromRow -= 1;
+        } else {
+            fromRow += 1;
+        }
+        int toRow = GameLogic.nextRow(toColumn, toPip, currentPlayer);
         char currentPlayerColour; // Each position has a one of 3 colours RED, BLUE OR EMPTY ( R, B, E )
 
-        Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn, fromRow, currentPlayer, fromPip);
+        // NEEDS TO BE FIXED
+        Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn,fromRow,currentPlayer,fromPip);
 
         // 3 types of moves can be made
-        if (fromPip == 0) { // Moving from bar to board
-            currentPlayerColour = BoardPanel.BAR[fromColumn][fromRow].getPlayer();
+        if (fromPip == 25) { // Moving from bar to board
+            currentPlayerColour = BoardPanel.BAR[fromColumn][fromRow].getPlayerColour();
             BoardPanel.BAR[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(currentPlayerColour);
         }
 
-        if (toPip == 25) { // Moving from board to bear
-            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayer();
+        if (toPip == 0) { // Moving from board to bear
+            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayerColour();
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate();
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BEAR[toColumn][toRow].occupyCoordinate(currentPlayerColour);
         } else { // Moving from board to board
-            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayer();
+            currentPlayerColour = BoardPanel.BOARD[fromColumn][fromRow].getPlayerColour();
             BoardPanel.BOARD[fromColumn][fromRow].releaseCoordinate(); // Set position to no colour
             Checkers.moveCircle(toBeMoved, toColumn, toRow, toPip);
             BoardPanel.BOARD[toColumn][toRow].occupyCoordinate(currentPlayerColour); // Occupy position with colour of current player
@@ -109,30 +115,6 @@ class UserInterface extends VBox {
                 System.exit(0);
             }
 
-//            if(textField.getText().equalsIgnoreCase("double")) {
-//                textField.setText("");
-//                if(Dice.x == 1) { // Cube in no one's possession
-//                    Dice.firstDoubleOdds(); // Player who prompted double now holds dice
-//                    currentHolder = currentPlayer;
-//                }
-//
-//                if(Dice.x < 64 && Dice.x > 1) { // After first double prompt
-//                    String acceptOrNot = textField.getText();
-//                    if(Dice.acceptDouble(acceptOrNot)) {
-//                        currentHolder = Dice.doubleOdds(currentPlayer, currentHolder);
-//                    }
-//
-//                    else {
-//                        textArea.appendText("Player did not accept double\n");
-//                    }
-//                }
-//
-//                else {
-//                    textArea.appendText("Odds can not be doubled anymore\n");
-//                }
-//
-//            } // Doubles the odds and flips cube //
-
             if (moveOption.trim().length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
 
@@ -154,8 +136,7 @@ class UserInterface extends VBox {
             }
 
             if (textField.getText().equalsIgnoreCase("cheat")) {
-                textField.setText("");
-                textArea.setText("");
+                textField.setText(""); textArea.setText("");
                 cheatCommand();
                 ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
                 moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer); // Display moves for next dice roll;
@@ -166,31 +147,33 @@ class UserInterface extends VBox {
     }
 
     private void startCommand() {
-        textArea.appendText(Player.playerRed.getName() + " is using red\n");
-        textArea.appendText(Player.playerBlue.getName() + " is using blue\n\n");
+        textArea.appendText(Player.playerRed.getName() + " is Red\n");
+        textArea.appendText(Player.playerBlue.getName() + " is Blue\n\n");
         textArea.appendText("Rolling Dice to see who goes first:\n");
         textField.setText("");
+
         do {
             Dice.rollDice();
-            textArea.appendText(Player.playerRed.getName() + " rolled " + (Dice.roll1 + 1) + "\n");
-            textArea.appendText(Player.playerBlue.getName() + " rolled " + (Dice.roll2 + 1) + "\n");
+            textArea.appendText(Player.playerRed.getName() + " rolled " + (Dice.roll1) + "\n");
+            textArea.appendText(Player.playerBlue.getName() + " rolled " + (Dice.roll2) + "\n");
+
             if (Dice.roll1 > Dice.roll2) {
                 Player.playerRed.setTurn(1); // Red = Player 1
                 Player.playerBlue.setTurn(2); // Blue = Player 2
                 currentPlayer = Player.playerRed.getTurn(); // Player 1 starts
-                textArea.appendText(Player.playerRed.getName() + " is player " + Player.playerRed.getTurn() + " as they rolled the higher number.\n\n");
+                textArea.appendText(Player.playerRed.getName() + " goes first as they rolled the higher number.\n\n");
             }
 
             if (Dice.roll1 < Dice.roll2) {
                 Player.playerBlue.setTurn(1); // Red = P2
                 Player.playerRed.setTurn(2); // Blue = P1
                 currentPlayer = Player.playerBlue.getTurn();
-                textArea.appendText(Player.playerBlue.getName() + " is player " + Player.playerBlue.getTurn() + " as they rolled the higher number.\n\n");
+                textArea.appendText(Player.playerBlue.getName() + " goes first as they rolled the higher number.\n\n");
                 BoardPanel.gameView.setImage(boardImageFlipped);
             }
 
             if (Dice.roll1 == Dice.roll2) {
-                textArea.appendText("Both Players rolled a " + (Dice.roll1 + 1) + " so players must move again\n\n");
+                textArea.appendText("Both Players rolled a " + (Dice.roll1) + " so players must move again\n\n");
             }
         } while (Dice.roll1 == Dice.roll2); // Roll to see who goes first
 
@@ -204,12 +187,12 @@ class UserInterface extends VBox {
         Dice.rollDice();
         if (currentPlayer == Player.playerRed.getTurn()) { // If it was Red's turn, now blue's turn
             textArea.appendText("\n" + Player.playerBlue.getName() + "'s turn\n");
-            textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " rolled " + (Dice.roll1 + 1) + " and " + (Dice.roll2 + 1) + "\n\n");
+            rolledDouble(Player.playerBlue);
             BoardPanel.gameView.setImage(boardImageFlipped);
             currentPlayer = Player.playerBlue.getTurn();
         } else {
             textArea.appendText("\n" + Player.playerRed.getName() + "'s turn\n");
-            textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " rolled " + (Dice.roll1 + 1) + " and " + (Dice.roll2 + 1) + "\n\n");
+            rolledDouble(Player.playerRed);
             BoardPanel.gameView.setImage(BoardPanel.boardImage);
             currentPlayer = Player.playerRed.getTurn();
         }
@@ -242,8 +225,8 @@ class UserInterface extends VBox {
 
         int numReds = 0;
         int numBlues = 0;
-        int currentPip = 1; // PIP TO BE CONVERTED TO COLUMN
-        int column = GameLogic.convertPipToColumn(currentPip); // COLUMN OF PIP THAT WAS CONVERTED
+        int currentPip = 1;
+        int column = GameLogic.convertPipToColumn(currentPip);
         int row;
 
         for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
@@ -286,53 +269,19 @@ class UserInterface extends VBox {
 
         currentPip = 5;
         column = GameLogic.convertPipToColumn(currentPip);
+        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
+            System.out.println("Row: " + row);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
             BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
         }
 
-        column = 0; // BAR RED
-        row = 0;
-        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
-            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 0);
-            BoardPanel.BAR[column][row].occupyCoordinate('R');
-            numReds++;
-            row++;
-        }
-
-        column = 0; // BEAR RED
-        row = 15;
-        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) {
-            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 25);
-            BoardPanel.BEAR[column][row].occupyCoordinate('R');
-            numReds++;
-            row++;
-        }
-
-        column = 0; // BAR BLUE
-        row = 5;
-        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
-            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 0);
-            BoardPanel.BAR[column][row].occupyCoordinate('B');
-            numBlues++;
-            row++;
-        }
-
-        column = 0; // BEAR BLUE
-        row = 0;
-        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
-            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 25);
-            BoardPanel.BEAR[column][row].occupyCoordinate('B');
-            numBlues++;
-            row++;
-        }
-
-
         currentPip = 24;
         column = GameLogic.convertPipToColumn(currentPip);
+        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -343,6 +292,7 @@ class UserInterface extends VBox {
 
         currentPip = 22;
         column = GameLogic.convertPipToColumn(currentPip);
+        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -353,6 +303,7 @@ class UserInterface extends VBox {
 
         currentPip = 21;
         column = GameLogic.convertPipToColumn(currentPip);
+        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -361,7 +312,42 @@ class UserInterface extends VBox {
             numBlues++;
         }
 
-    } // Cheat testing
+        column = 0; // BAR RED
+        row = 0;
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 25);
+            BoardPanel.BAR[column][row].occupyCoordinate('R');
+            numReds++;
+            row++;
+        }
+
+        column = 0; // BEAR RED
+        row = 15;
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 0);
+            BoardPanel.BEAR[column][row].occupyCoordinate('R');
+            numReds++;
+            row++;
+        }
+
+        column = 0; // BAR BLUE
+        row = 5;
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 25);
+            BoardPanel.BAR[column][row].occupyCoordinate('B');
+            numBlues++;
+            row++;
+        }
+
+        column = 0; // BEAR BLUE
+        row = 0;
+        for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 0);
+            BoardPanel.BEAR[column][row].occupyCoordinate('B');
+            numBlues++;
+            row++;
+        }
+    }
 
     private void moveCommand(char option) {
         textField.setText("");
@@ -397,214 +383,11 @@ class UserInterface extends VBox {
 
         textArea.appendText("Available moves:\n");
         for (int[] ints : moveTo) {
-            if(canBearOff) { // Can bear off
-                if(ints[1] != 0 && ints[2] != 0 && ints[3] != 0) { // Board to board
-                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
-                        break;
-                    }
-                    else { //Legal moves available
-                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // All legal moves
-                            LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                            FROM_PIPS.add(ints[0]);
-                            TO_PIPS.add(ints[3]);
-                            MOVE_COUNT.add(2);
-                        }
+            if(GameLogic.canBearOff()) { // Can bear off
 
-                        else { // Some legal moves
-                            if(ints[3] == -1) { // No double moves
-                                if(ints[1] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[1]);
-                                    MOVE_COUNT.add(1);
-                                }
-                                if(ints[2] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[2]);
-                                    MOVE_COUNT.add(1);
-                                }
-                            }
-                            else { // Double moves
-                                if(ints[1] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[3]);
-                                    MOVE_COUNT.add(2);
-                                }
-                                if(ints[2] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[3]);
-                                    MOVE_COUNT.add(2);
-                                }
-                            }
-                        }
-                    }
-                }
-                else { // Board-off move
-                    if(ints[1] == 0 && ints[2] == 0 && ints[3] == 0) { // All bear offs
-                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
-                        FROM_PIPS.add(ints[0]);
-                        TO_PIPS.add(25);
-                        MOVE_COUNT.add(1);
-                    }
-                    else { // Not all bear offs
-                        if(ints[3] != 0) { // Single moves
-                            if(ints[1] == 0) {
-                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
-                                FROM_PIPS.add(ints[0]);
-                                TO_PIPS.add(25);
-                                MOVE_COUNT.add(1);
-                            }
-                            if(ints[2] == 0) {
-                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - Off");
-                                FROM_PIPS.add(ints[0]);
-                                TO_PIPS.add(25);
-                                MOVE_COUNT.add(1);
-                            }
-                        }
-                        else { // Double moves
-                            if(ints[1] != 0 && ints[1] != -1) {
-                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - Off");
-                                FROM_PIPS.add(ints[0]);
-                                TO_PIPS.add(25);
-                                MOVE_COUNT.add(2);
-                            }
-                            else if(ints[2] != 0 && ints[2] != -1) {
-                                LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - Off");
-                                FROM_PIPS.add(ints[0]);
-                                TO_PIPS.add(25);
-                                MOVE_COUNT.add(2);
-                            }
-                        }
-                    }
-                }
             }
+            else { // Can't bear off
 
-            if(!canBearOff) { // Can't bear off
-                if(ints[0] == 0) { // if a bar to board move
-                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
-                        break;
-                    }
-                    else { // if legal moves are available
-                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // If all are legal moves
-                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1]);
-                            FROM_PIPS.add(0);
-                            TO_PIPS.add(ints[1]);
-                            MOVE_COUNT.add(1);
-
-                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2]);
-                            FROM_PIPS.add(0);
-                            TO_PIPS.add(ints[2]);
-                            MOVE_COUNT.add(1);
-
-                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1] + " " + ints[1] + " - " + ints[3]);
-                            FROM_PIPS.add(0);
-                            TO_PIPS.add(ints[3]);
-                            MOVE_COUNT.add(2);
-
-                            LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2] + " " + ints[2] + " - " + ints[3]);
-                            FROM_PIPS.add(0);
-                            TO_PIPS.add(ints[3]);
-                            MOVE_COUNT.add(2);
-                        }
-                        else { // Some legal moves
-                            if(ints[3] == -1) { // No double moves
-                                if(ints[1] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1]);
-                                    FROM_PIPS.add(0);
-                                    TO_PIPS.add(ints[1]);
-                                    MOVE_COUNT.add(1);
-                                }
-                                if(ints[2] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2]);
-                                    FROM_PIPS.add(0);
-                                    TO_PIPS.add(ints[2]);
-                                    MOVE_COUNT.add(1);
-                                }
-                            }
-                            else { // Double moves
-                                if(ints[1] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[1] + " " + ints[1] + " - " + ints[3]);
-                                    FROM_PIPS.add(0);
-                                    TO_PIPS.add(ints[3]);
-                                    MOVE_COUNT.add(2);
-                                }
-                                if(ints[2] != -1) {
-                                    LEGAL_MOVES.add(letter++ + ": Bar - " + ints[2] + " " + ints[2] + " - " + ints[3]);
-                                    FROM_PIPS.add(0);
-                                    TO_PIPS.add(ints[3]);
-                                    MOVE_COUNT.add(2);
-                                }
-                            }
-                        }
-                    }
-                }
-                else { // if a board-board move
-                    if(ints[1] == -1 && ints[2] == -1) { // No legal moves available for this pip
-                        break;
-                    }
-                    else { // Legal moves available
-                        if(ints[1] != -1 && ints[2] != -1 && ints[3] != -1) { // All legal moves
-                            if(ints[3] == 0) { // Single moves
-                                if(ints[1] == 0) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[2]);
-                                    MOVE_COUNT.add(1);
-                                }
-                                if(ints[2] == 0) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[1]);
-                                    MOVE_COUNT.add(1);
-                                }
-                            }
-                            else { // Double moves
-                                if(ints[1] != 0 || ints[2] != 0) { // Remove duplicates
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[3]);
-                                    MOVE_COUNT.add(2);
-                                }
-                            }
-                        }
-
-                        else { // Some legal moves // NEEDS TO BE FIXED ///////
-                            if(ints[3] == -1) { // No double moves
-                                if(ints[1] != -1 && ints[1] != 0) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[1]);
-                                    MOVE_COUNT.add(1);
-                                }
-                                if(ints[2] != -1 && ints[2] != 0) {
-                                    LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2]);
-                                    FROM_PIPS.add(ints[0]);
-                                    TO_PIPS.add(ints[2]);
-                                    MOVE_COUNT.add(1);
-                                }
-                            }
-                            else { // Double moves
-                                if(ints[3] != 0) {
-                                    if(ints[1] != -1) {
-                                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[1] + "  " + ints[1] + " - " + ints[3]);
-                                        FROM_PIPS.add(ints[0]);
-                                        TO_PIPS.add(ints[3]);
-                                        MOVE_COUNT.add(2);
-                                    }
-                                    if(ints[2] != -1) {
-                                        LEGAL_MOVES.add(letter++ + ": " + ints[0] + " - " + ints[2] + "  " + ints[2] + " - " + ints[3]);
-                                        FROM_PIPS.add(ints[0]);
-                                        TO_PIPS.add(ints[3]);
-                                        MOVE_COUNT.add(2);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -620,6 +403,7 @@ class UserInterface extends VBox {
         } else {
             IntStream.range(0, LEGAL_MOVES.size()).forEach(index -> textArea.appendText(LEGAL_MOVES.get(index) + "\n"));
         }
+
         textArea.appendText("\n");
     }
 
@@ -703,6 +487,16 @@ class UserInterface extends VBox {
         });
         newThread.start();
     } // Warning for incorrect selection of moves
+
+    private static void rolledDouble(Player player) {
+        if(Dice.roll1 == Dice.roll2) {
+            textArea.appendText(player.getColour() + ": " + player.getName() + " rolled double " + Dice.roll1);
+            doubleRolled = true;
+        } else {
+            textArea.appendText(player.getColour() + ": " + player.getName() + " rolled " + Dice.roll1 + " and " + Dice.roll2 + "\n\n");
+            doubleRolled = false;
+        }
+    }
 
 //    private boolean isCanBearOff(int currentPlayer) {
 //        char currentPlayerColour;

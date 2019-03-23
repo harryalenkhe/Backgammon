@@ -22,12 +22,12 @@ class Checkers extends Group {
     }
 
     static void moveCircle(Circle circle, int column, int row, int pip) {
-        if (pip == 0) {
+        if (pip == 25) {
             circle.setCenterX(BoardPanel.BAR[column][row].getX());
             circle.setCenterY(BoardPanel.BAR[column][row].getY());
         }
 
-        if (pip == 25) {
+        if (pip == 0) {
             circle.setCenterX(BoardPanel.BEAR[column][row].getX());
             circle.setCenterY(BoardPanel.BEAR[column][row].getY());
         }

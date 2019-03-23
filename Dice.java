@@ -16,6 +16,7 @@ class Dice extends Group {
     private static StackPane dice1;
     private static StackPane dice2;
     private static StackPane doublingCube;
+//    static int x = 1;
 
     Dice() {
         setUpDice();
@@ -25,20 +26,20 @@ class Dice extends Group {
 
     static void rollDice() {
         Random r = new Random();
-        roll1 = r.nextInt(6);
-        roll2 = r.nextInt(6);
+        roll1 = r.nextInt(6) + 1;
+        roll2 = r.nextInt(6) + 1;
 
         dice1.getChildren().remove(diceNumber1);
         dice2.getChildren().remove(diceNumber2);
 
         diceNumber1.setFill(Color.BLACK);
-        diceNumber1.setText(Integer.toString(roll1 + 1));
+        diceNumber1.setText(Integer.toString(roll1));
         dice1.getChildren().add(diceNumber1);
         dice1.setLayoutX(175.7);
         dice1.setLayoutY(271);
 
         diceNumber2.setFill(Color.BLACK);
-        diceNumber2.setText(Integer.toString(roll2 + 1));
+        diceNumber2.setText(Integer.toString(roll2));
         dice2.getChildren().add(diceNumber2);
         dice2.setLayoutX(442.5);
         dice2.setLayoutY(271);
@@ -50,11 +51,11 @@ class Dice extends Group {
         Rectangle outerShape = new Rectangle();
         outerShape.setWidth(30); outerShape.setHeight(30);
         outerShape.setStroke(Color.RED); outerShape.setFill(Color.WHITE);
-        dice1.getChildren().addAll(outerShape, diceNumber1); // Making a rectangle into a die
+        dice1.getChildren().addAll(outerShape, diceNumber1); // Make rectangle into die
         dice1.setLayoutX(42.5);
         dice1.setLayoutY(76);
 
-        dice2 = new StackPane(); // The Container for a rectangle and diceNumber1
+        dice2 = new StackPane(); // Container for rectangle and diceNumber1
         diceNumber2 = new Text("6");
         Rectangle die2 = new Rectangle();
         die2.setWidth(30);

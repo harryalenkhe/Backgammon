@@ -11,13 +11,13 @@ class GameLogic {
         Set<Integer> ownCheckersSet = new HashSet<>(); // Used to store unique values only
         ArrayList<Integer> ownCheckersArrayList = new ArrayList<>();
 
-        if (currentPlayer == Player.playerRed.getTurn()) { // If its the red players turn
+        if (currentPlayer == Player.playerRed.getTurn()) { // If red players turn
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.redCheckers[index].getCircleX();
                 checkerY = BoardPanel.redCheckers[index].getCircleY();
 
                 if(checkerX == 325.775) { // If on the bar
-                    pip = 0;
+                    pip = 25;
                     ownCheckersSet.add(pip);
                 } else {
                     column = (int) (((checkerX - 109)/33.35) + 0.5d); // Get column from X coordinate
@@ -38,13 +38,13 @@ class GameLogic {
             }
         }
 
-        if (currentPlayer == Player.playerBlue.getTurn()) { // If its the blue players turn
+        if (currentPlayer == Player.playerBlue.getTurn()) { // If blue players turn
             for (int index = 0; index < 15; index++) {
                 checkerX = BoardPanel.blueCheckers[index].getCircleX();
                 checkerY = BoardPanel.blueCheckers[index].getCircleY();
 
                 if(checkerX == 325.775) { // If checker on bar
-                    pip = 0;
+                    pip = 25;
                     ownCheckersSet.add(pip);
                 } else { // If checker on board
                     column = (int) (((checkerX - 109) / 33.35) + 0.5d);
@@ -54,12 +54,12 @@ class GameLogic {
 
                     if (checkerY <= 241) { // If top half of board
                         pip = Math.abs(column - 12);
-                        ownCheckersSet.add(pip); // Store the pip in array
+                        ownCheckersSet.add(pip); // Store pip in array
                     }
 
                     else if (checkerY > 241) { // If bottom half of board
                         pip = column + 13;
-                        ownCheckersSet.add(pip); // Store the pip in array
+                        ownCheckersSet.add(pip); // Store pip in array
                     }
                 }
             }
@@ -77,54 +77,162 @@ class GameLogic {
         int[][] moveTo = new int[ownerCheckers.size()][4];
         for (int index = 0; index < ownerCheckers.size(); index++) {
 
+            // First assign variables to pips moved to from dice rolls
             int startPip = ownerCheckers.get(index);
-            int singleToPip1; // Dice roll 1 move
-            int singleToPip2; // Dice roll 2 move
-            int doubleToPip; // Both dice rolls combined move
-
-            if(startPip == 0) { // If starting on the bar
-                singleToPip1 = 25 - (Dice.roll1+1);
-                singleToPip2 = 25 - (Dice.roll2+1);
-                doubleToPip = 25 - (Dice.roll1 + Dice.roll2 + 2);
-            } else { // If starting on the board
-                singleToPip1 = startPip - (Dice.roll1+1);
-                singleToPip2 = startPip - (Dice.roll2+1);
-                doubleToPip = startPip - (Dice.roll1 + Dice.roll2 + 2);
-            }
+            int singleToPip1 = startPip - (Dice.roll1);
+            int singleToPip2 = startPip - (Dice.roll2);
+            int doubleToPip = startPip - (Dice.roll1 + Dice.roll2);
 
             moveTo[index][0] = startPip; // store starting pip
 
-            // NEEDS TO BE FIXED
-            // Store any moves with pips less than 0 as 0
-            if(singleToPip1 <= 0) moveTo[index][1] = 0;
-            else { // If pip is between 24-0
-                if(isLegalMove(singleToPip1, currentPlayer)) { // If its a legal move
-                    System.out.println(startPip + " to " + singleToPip1 + " is a legal move");
+            if (canBearOff()) {
+                if (singleToPip1 <= 0) { // SINGLE bear off move
+                    singleToPip1 = 0;
+                    doubleToPip = 0;
                     moveTo[index][1] = singleToPip1;
-
-                } else { // If its not a legal move
-                    moveTo[index][1] = -1;
-                }
-            }
-
-            if(singleToPip2 <= 0) moveTo[index][2] = 0;
-            else {
-                if(isLegalMove(singleToPip2, currentPlayer)) {
-                    System.out.println(startPip + " to " + singleToPip2 + " is a legal move");
-                    moveTo[index][2] = singleToPip2;
-                } else {
-                    moveTo[index][2] = -1;
-                }
-            }
-
-            if(doubleToPip <= 0) moveTo[index][3] = 0;
-            else {
-                if(isLegalMove(doubleToPip, currentPlayer)) {
-                    System.out.println(startPip + " to " + doubleToPip + " is a legal move");
                     moveTo[index][3] = doubleToPip;
-                } else if (moveTo[index][1] == -1 && moveTo[index][2] == -1) {
-                    moveTo[index][3] = -1;
                 }
+                else {
+                    if (isLegalMove(singleToPip1, currentPlayer)) { // If legal
+                        moveTo[index][1] = singleToPip1; // Store
+                        if (doubleToPip <= 0) {
+                            doubleToPip = 0;
+                            moveTo[index][3] = doubleToPip;
+                        } else {
+                            if(isLegalMove(doubleToPip, currentPlayer)) {
+                                moveTo[index][3] = doubleToPip;
+                            } else {
+                                doubleToPip = -1;
+                                moveTo[index][3] = doubleToPip;
+                            }
+                        }
+                    } else {
+                        singleToPip1 = -1;
+                        doubleToPip = -1;
+                        moveTo[index][1] = singleToPip1;
+                        moveTo[index][3] = doubleToPip;
+                    }
+                }
+
+
+                if (singleToPip2 <= 0) { // Bear off
+                    singleToPip2 = 0; // If one dice roll moves the checker to bear off
+                    doubleToPip = 0; // Two dice rolls will definietely move checker to bear off
+                    moveTo[index][2] = singleToPip2;
+                    moveTo[index][3] = doubleToPip;
+                }
+                else { // Non bear-off
+                    if (isLegalMove(singleToPip2, currentPlayer)) { // Legal move
+                        moveTo[index][2] = singleToPip2;
+                        if (doubleToPip <= 0) { // If two dice rolls moves checker to bear off
+                            doubleToPip = 0;
+                            moveTo[index][3] = doubleToPip;
+                        } else {
+                            if(isLegalMove(doubleToPip, currentPlayer)) {
+                                moveTo[index][3] = doubleToPip;
+                            } else {
+                                doubleToPip = -1;
+                                moveTo[index][3] = doubleToPip;
+                            }
+                        }
+                    } else { // Not a legal move
+                        singleToPip2 = -1;
+                        doubleToPip = -1; // If one dice roll move is not legal, then no legal moves
+                        moveTo[index][2] = singleToPip2;
+                        moveTo[index][3] = doubleToPip;
+                    }
+                }
+
+            }
+
+            else { //CANT BEAR OFF
+                if(startPip != 25) { // Moving from board
+                    if (singleToPip1 <= 0) { // bear off move
+                        singleToPip1 = -1;
+                        doubleToPip = -1;
+                        moveTo[index][1] = singleToPip1;
+                        moveTo[index][3] = doubleToPip;
+                    } else { // Non bear off move
+                        if (isLegalMove(singleToPip1, currentPlayer)) {
+                            moveTo[index][1] = singleToPip1;
+                            if (doubleToPip <= 0) {
+                                doubleToPip = -1; // Illegal
+                                moveTo[index][3] = doubleToPip;
+                            } else {
+                                if(isLegalMove(doubleToPip, currentPlayer)) {
+                                    moveTo[index][3] = doubleToPip;
+                                } else {
+                                    doubleToPip = -1;
+                                    moveTo[index][3] = doubleToPip;
+                                }
+                            }
+                        } else {
+                            singleToPip1 = -1;
+                            doubleToPip = -1;
+                            moveTo[index][1] = singleToPip1;
+                            moveTo[index][3] = doubleToPip;
+                        }
+                    }
+
+                    if (singleToPip2 <= 0) { // bear off move
+                        singleToPip2 = -1;
+                        doubleToPip = -1;
+                        moveTo[index][2] = singleToPip2;
+                        moveTo[index][3] = doubleToPip;
+                    } else {
+                        if (isLegalMove(singleToPip2, currentPlayer)) {
+                            moveTo[index][2] = singleToPip2;
+                            if (doubleToPip <= 0) {
+                                doubleToPip = -1; // Illegal
+                                moveTo[index][3] = doubleToPip;
+                            } else {
+                                if(isLegalMove(doubleToPip, currentPlayer)) {
+                                    moveTo[index][3] = doubleToPip;
+                                } else {
+                                    doubleToPip = -1;
+                                    moveTo[index][3] = doubleToPip;
+                                }
+                            }
+                        } else {
+                            singleToPip2 = -1;
+                            doubleToPip = -1;
+                            moveTo[index][2] = singleToPip2;
+                            moveTo[index][3] = doubleToPip;
+                        }
+                    }
+                }
+                else { // Moving from bar
+                    if(isLegalMove(singleToPip1, currentPlayer)) {
+                        moveTo[index][1] = singleToPip1;
+                        if(isLegalMove(doubleToPip, currentPlayer)) {
+                            moveTo[index][3] = doubleToPip;
+                        } else {
+                            doubleToPip = -1;
+                            moveTo[index][3] = doubleToPip;
+                        }
+                    } else {
+                        singleToPip1 = -1;
+                        doubleToPip = -1;
+                        moveTo[index][1] = singleToPip1;
+                        moveTo[index][3] = doubleToPip;
+                    }
+
+                    if(isLegalMove(singleToPip2, currentPlayer)) {
+                        moveTo[index][2] = singleToPip2;
+                        if(isLegalMove(doubleToPip, currentPlayer)) {
+                            moveTo[index][3] = doubleToPip;
+                        } else {
+                            doubleToPip = -1;
+                            moveTo[index][3] = doubleToPip;
+                        }
+                    } else {
+                        singleToPip2 = -1;
+                        doubleToPip = -1;
+                        moveTo[index][2] = singleToPip2;
+                        moveTo[index][3] = doubleToPip;
+                    }
+                }
+
             }
         }
         return moveTo;
@@ -132,18 +240,18 @@ class GameLogic {
 
     // Convert pip to a column integer which is used as X index in array
     static int convertPipToColumn(int pip) {
-        int column = 0;
-
-        if(pip>12) { // TOP HALF OF BOARD
-            column = pip-13;
-        }
-
-        if(pip <= 12) { // BOTTOM HALF OF BOARD
-            column = Math.abs(pip-12);
-        }
+        int column;
 
         if(pip == 0 || pip == 25) { // BAR OR BEAR
             column = 0;
+        }
+
+        else if(pip > 12) { // TOP HALF OF BOARD
+            column = pip-13;
+        }
+
+        else { // BOTTOM HALF OF BOARD
+            column = Math.abs(pip-12);
         }
 
         return column;
@@ -167,7 +275,7 @@ class GameLogic {
                 }
             }
 
-            if(pip <= 12) { // Bottom half of board
+            if(pip <= 12){ // Bottom half of board
                 for(int rowCheck = 11; rowCheck > 5; rowCheck--) { // Max 6 checkers in each column // Start bottom and go up
                     if(!BoardPanel.BOARD[column][rowCheck].isTaken()) { // If position in column is free then break
                         freeRow = rowCheck;
@@ -180,18 +288,18 @@ class GameLogic {
                 }
             }
 
-            if(pip == 0) {
-                for(int rowCheck = 0; rowCheck < 10; rowCheck++) {
-                    if(!BoardPanel.BAR[0][rowCheck].isTaken()) {
+            if(pip == 0) { // bear
+                for(int rowCheck = 15; rowCheck < 30; rowCheck++) {
+                    if(!BoardPanel.BEAR[0][rowCheck].isTaken()) {
                         freeRow = rowCheck;
                         break;
                     }
                 }
             }
 
-            if(pip == 25) {
-                for(int rowCheck = 15; rowCheck < 30; rowCheck++) {
-                    if(!BoardPanel.BEAR[0][rowCheck].isTaken()) {
+            if(pip == 25) { // bar
+                for(int rowCheck = 0; rowCheck < 10; rowCheck++) {
+                    if(!BoardPanel.BAR[0][rowCheck].isTaken()) {
                         freeRow = rowCheck;
                         break;
                     }
@@ -207,7 +315,7 @@ class GameLogic {
                         break;
                     }
 
-                    if(rowCheck == 6) { // The Pip is full with 6 checkers
+                    if(rowCheck == 6) { // Pip is full with 6 checkers
                         break;
                     }
                 }
@@ -220,22 +328,13 @@ class GameLogic {
                         break;
                     }
 
-                    if(rowCheck == 5) { // The Pip is full with 6 checkers
+                    if(rowCheck == 5) { // Pip is full with 6 checkers
                         break;
                     }
                 }
             }
 
-            if(pip == 0) {
-                for(int rowCheck = 0; rowCheck < 10; rowCheck++) {
-                    if(!BoardPanel.BAR[0][rowCheck].isTaken()) {
-                        freeRow = rowCheck;
-                        break;
-                    }
-                }
-            }
-
-            if(pip == 25) {
+            if(pip == 0) { // BEAR
                 for(int rowCheck = 0; rowCheck < 15; rowCheck++) {
                     if(!BoardPanel.BEAR[0][rowCheck].isTaken()) {
                         freeRow = rowCheck;
@@ -243,87 +342,17 @@ class GameLogic {
                     }
                 }
             }
+
+            else if(pip == 25) { //BAR
+                for(int rowCheck = 0; rowCheck < 10; rowCheck++) {
+                    if(!BoardPanel.BAR[0][rowCheck].isTaken()) {
+                        freeRow = rowCheck;
+                        break;
+                    }
+                }
+            }
         }
         return freeRow; // Return position in column that is free
-    }
-
-    static int topCheckerInPip(int column, int pip, int currentPlayer) {
-        int top = 0;
-
-        if(currentPlayer == Player.playerRed.getTurn()) {
-            if(pip >= 13) { // Top half of board
-                for(int nextRow = 0; nextRow <= 6; nextRow++) { // Max 6 checkers in each column // Start at top and go down
-                    if(!BoardPanel.BOARD[column][nextRow].isTaken()) { // If position in column is free then break
-                        top = nextRow - 1; // Decrement by 1 to get top checker, as counting down from the top
-                        break;
-                    }
-                    if(nextRow == 5) { // If 6 checkers in a column,
-                        top = 5;
-                        break;
-                    }
-                }
-            }
-
-            if(pip <= 12) { // Bottom half of board
-                for(int nextRow = 11; nextRow >= 6; nextRow--) { // Max 6 checkers in each column // Start bottom and go up
-                    if(!BoardPanel.BOARD[column][nextRow].isTaken()) { // If position in column is free then break and return checker before it
-                        top = nextRow + 1; // Increment by 1 to get top checker, as counting up from the bottom
-                        break;
-                    }
-                    if(nextRow == 6) { // If 6 checkers in a column, return top checker
-                        top = 6;
-                        break;
-                    }
-                }
-            }
-
-            if(pip == 0) {
-                for(int nextRow = 0; nextRow < 5; nextRow++) {
-                    if(!BoardPanel.BAR[0][nextRow].isTaken()) {
-                        top = nextRow - 1;
-                        break;
-                    }
-                }
-            }
-        }
-
-        else if(currentPlayer == Player.playerBlue.getTurn()) {
-            if(pip >= 13) { // Bottom half of board
-                for(int nextRow = 11; nextRow >= 6; nextRow--) { // Max 6 checkers in each column // Start bottom and go up
-                    if(!BoardPanel.BOARD[column][nextRow].isTaken()) { // If position in column is free then break and return checker before it
-                        top = nextRow + 1; // Increment by 1 to get top checker, as counting up from the bottom
-                        break;
-                    }
-                    if(nextRow == 6) { // If 6 checkers in a column, return top checker
-                        top = 6;
-                        break;
-                    }
-                }
-            }
-
-            if(pip <= 12) { // Top half of board
-                for(int nextRow = 0; nextRow <= 6; nextRow++) { // Max 6 checkers in each column // Start at top and go down
-                    if(!BoardPanel.BOARD[column][nextRow].isTaken()) { // If position in column is free then break
-                        top = nextRow - 1; // Decrement by 1 to get top checker, as counting down from the top
-                        break;
-                    }
-                    if(nextRow == 5) { // If 6 checkers in a column,
-                        top = 5;
-                        break;
-                    }
-                }
-            }
-
-            if(pip == 0) {
-                for(int nextRow = 5; nextRow < 10; nextRow++) {
-                    if(!BoardPanel.BAR[0][nextRow].isTaken()) {
-                        top = nextRow - 1;
-                        break;
-                    }
-                }
-            }
-        }
-        return top; // Return position in column that is free
     }
 
     static int getWinner() { // Check if last position in Bear Off is taken
@@ -356,14 +385,14 @@ class GameLogic {
                 colourOfPosition = 'E';
             } else { // If not empty, check colour of checker
                 // We check the position before the free row to get the colour of the checker
-                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip - 1].getPlayer();
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip - 1].getPlayerColour();
             }
         } else { // Bottom half
             if(freeRowInPip == 11) { // If pip is empty
                 colourOfPosition = 'E';
             } else { // If not empty
                 // We check the position before the free row to get the colour of the checker
-                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip + 1].getPlayer();
+                colourOfPosition = BoardPanel.BOARD[columnOfPip][freeRowInPip + 1].getPlayerColour();
             }
         }
 
@@ -376,15 +405,25 @@ class GameLogic {
                     legalMove = true;
                 } else if (colourOfPosition == 'B') { // Not own checker
                     legalMove = (freeRowInPip == 10 || freeRowInPip == 1);
+                    if(legalMove) { // If its a hit
+
+                    }
                 }
             } else if (currentPlayer == Player.playerBlue.getTurn()) {
                 if (colourOfPosition == 'B') { // Own checker
                     legalMove = true;
                 } else if (colourOfPosition == 'R') {
                     legalMove = (freeRowInPip == 10 || freeRowInPip == 1);
+                    if(legalMove) { // If its a hit
+
+                    }
                 }
             }
             return legalMove;
         }
+    }
+
+    static boolean canBearOff() {
+        return false;
     }
 }

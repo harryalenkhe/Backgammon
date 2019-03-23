@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.stream.IntStream;
 
 class BoardPanel {
     private BufferedImage emptyBoardImage;
@@ -43,9 +44,8 @@ class BoardPanel {
     
     private void setGameComponents() {
         gameComponents.getChildren().addAll(gameView, UI, dice);
-        for (int i = 0; i < 15; i++) { // Adding checkers to the board
-            gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle());
-        }
+        // Add checkers to board
+        IntStream.range(0, 15).forEach(i -> gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle()));
     }
 
     private void setGameBoard() {
@@ -64,7 +64,7 @@ class BoardPanel {
 
     private void setBoardImage() {
         try {
-            emptyBoardImage = ImageIO.read(this.getClass().getResource("/empty_board.jpg"));
+            emptyBoardImage = ImageIO.read(this.getClass().getResource("/images/empty_board.jpg"));
         } catch (IOException ex) {
             System.out.println("Image not showing / not found " + ex.toString());
         }
@@ -105,13 +105,13 @@ class BoardPanel {
         final double HORIZONTAL_OFFSET = 33.35;
 
         for(int col = 0; col < 12; col++) {
-            if (col == 6) { // Skip the bar and go on to the next pip
+            if (col == 6) { // Skip the bar and go to next pip
                 currentColumn = 375.8;
             }
 
             for(int row = 0; row < 12; row++) {
                 if (row == 6) {
-                    currentRow = 331; // Jump to the top of the bottom pip and leave a gap between top and bottom pips
+                    currentRow = 331; // Jump to top of bottom pip and leave gap between top and bottom pips
                 }
 
                 BOARD[col][row] = new Coordinates(currentColumn, currentRow, 'E');
@@ -129,121 +129,67 @@ class BoardPanel {
 
     private void createRedCheckers() {
         int numReds = 0;
-        int currentPip = 13; // THE PIP TO BE CONVERTED TO COLUMN
-        int column = GameLogic.convertPipToColumn(currentPip); // THE COLUMN OF THE PIP THAT WAS CONVERTED
+        int currentPip;
+        int column;
         int row;
 
-        for(int numCheckersInPip = 0; numCheckersInPip < 5; numCheckersInPip++) // Counts the checkers
-        {
+        for(int numCheckersInPip = 0; numCheckersInPip < 15; numCheckersInPip++) {
+            if(numCheckersInPip < 5) {
+                currentPip = 13;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else if(numCheckersInPip < 7) {
+                currentPip = 24;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else if(numCheckersInPip < 10) {
+                currentPip = 8;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else {
+                currentPip = 6;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS); // Circle with coordinates
             BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             red.setStroke(Color.BLACK);
             red.setFill(effects.checkerRed);
-            redCheckers[numReds] = new Checkers(red);
-            numReds++;
-        }
-
-        currentPip = 24;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('R');
-            red.setStroke(Color.BLACK);
-            red.setFill(effects.checkerRed);
-            redCheckers[numReds] = new Checkers(red);
-            numReds++;
-
-        }
-
-        currentPip = 8;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('R');
-            red.setStroke(Color.BLACK);
-            red.setFill(effects.checkerRed);
-            redCheckers[numReds] = new Checkers(red);
-            numReds++;
-        }
-
-        currentPip = 6;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 5; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('R');
-            red.setStroke(Color.BLACK);
-            red.setFill(effects.checkerRed);
-            redCheckers[numReds] = new Checkers(red);
-            numReds++;
+            redCheckers[numReds++] = new Checkers(red);
         }
     }
 
     private void createBlueCheckers() {
         int numBlues = 0;
-        int currentPip = 17; // Pip to be placed on
-        int column = GameLogic.convertPipToColumn(currentPip);
+        int currentPip;
+        int column;
         int row;
 
-        for(int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++)
-        {
+        for(int numCheckersInPip = 0; numCheckersInPip < 15; numCheckersInPip++) {
+            if(numCheckersInPip < 3) {
+                currentPip = 17;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else if(numCheckersInPip < 8) {
+                currentPip = 19;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else if(numCheckersInPip < 13) {
+                currentPip = 12;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
+            else {
+                currentPip = 1;
+                column = GameLogic.convertPipToColumn(currentPip);
+            }
             row = GameLogic.nextRow(column, currentPip, 0);
             Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
             BoardPanel.BOARD[column][row].occupyCoordinate('B');
             blue.setStroke(Color.BLACK);
             blue.setFill(effects.checkerBlue);
-            blueCheckers[numBlues] = new Checkers(blue);
-            numBlues++;
+            blueCheckers[numBlues++] = new Checkers(blue);
         }
-
-        currentPip = 19;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 5; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('B');
-            blue.setStroke(Color.BLACK);
-            blue.setFill(effects.checkerBlue);
-            blueCheckers[numBlues] = new Checkers(blue);
-            numBlues++;
-        }
-
-        currentPip = 12;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 5; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip,0);
-            Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('B');
-            blue.setStroke(Color.BLACK);
-            blue.setFill(effects.checkerBlue);
-            blueCheckers[numBlues] = new Checkers(blue);
-            numBlues++;        }
-
-        currentPip = 1;
-        column = GameLogic.convertPipToColumn(currentPip);
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++)
-        {
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('B');
-            blue.setStroke(Color.BLACK);
-            blue.setFill(effects.checkerBlue);
-            blueCheckers[numBlues] = new Checkers(blue);
-            numBlues++;        }
     }
 
     static Circle checkerAtStartingPip(int column, int row, int currentPlayer, int pip) {
