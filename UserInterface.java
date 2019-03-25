@@ -11,19 +11,17 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.stream.IntStream;
 
 class UserInterface extends VBox {
     private static TextField textField;
-    private static TextArea textArea;
+    static TextArea textArea;
     private BufferedImage emptyBoardImageFlipped;
     private static Image boardImageFlipped;
-    private ArrayList<Integer> ownerCheckers;
-    private ArrayList<Integer> MOVE_COUNT; // Has value of moves ( if a double move or single move )
-    private ArrayList<String> LEGAL_MOVES;
-    private ArrayList<Integer> FROM_PIPS;
-    private ArrayList<Integer> TO_PIPS;
-    private int[][] moveTo;
+    private static ArrayList<Integer> ownerCheckers;
+    static ArrayList<Integer> MOVE_COUNT; // Has value of moves ( if a double move or single move )
+    static ArrayList<String> LEGAL_MOVES;
+    static ArrayList<Integer> FROM_PIPS;
+    static ArrayList<Integer> TO_PIPS;
     private int moveCountTotal = 0;
     private int currentPlayer;
     static boolean doubleRolled = false;
@@ -42,7 +40,7 @@ class UserInterface extends VBox {
         int fromColumn = GameLogic.convertPipToColumn(fromPip);
         int toColumn = GameLogic.convertPipToColumn(toPip);
         int fromRow = GameLogic.nextRow(fromColumn, fromPip, currentPlayer);
-        if(fromRow < 6) {
+        if(fromRow < 15) {
             fromRow -= 1;
         } else {
             fromRow += 1;
@@ -50,7 +48,6 @@ class UserInterface extends VBox {
         int toRow = GameLogic.nextRow(toColumn, toPip, currentPlayer);
         char currentPlayerColour; // Each position has a one of 3 colours RED, BLUE OR EMPTY ( R, B, E )
 
-        // NEEDS TO BE FIXED
         Circle toBeMoved = BoardPanel.checkerAtStartingPip(fromColumn,fromRow,currentPlayer,fromPip);
 
         // 3 types of moves can be made
@@ -81,7 +78,6 @@ class UserInterface extends VBox {
             System.out.println("Image not showing / not found " + ex.toString());
         }
         boardImageFlipped = SwingFXUtils.toFXImage(emptyBoardImageFlipped, null); // For pip change
-
     }
 
     private void setTextField() {
@@ -105,44 +101,77 @@ class UserInterface extends VBox {
     private void gamePlay(Stage primaryWindow) {
         textField.setOnAction(E -> {
             // Takes input of two numbers and splits into two indexes of array
-            String moveOption = textField.getText().toUpperCase();
+            String moveOption = textField.getText().toUpperCase().trim();
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
+                if(LEGAL_MOVES.size() == 1) {
+                    getForcedPlayAlert();
+                    moveCommand('A');
+                    nextCommand();
+                }
+
+                if(LEGAL_MOVES.isEmpty()) {
+                    getNoMovesAlert();
+                    nextCommand();
+                }
             }
 
             if (textField.getText().equalsIgnoreCase("quit")) {
                 System.exit(0);
             }
 
-            if (moveOption.trim().length() == 1 && moveOption.matches("\\w")) {
+            if (moveOption.length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
 
-                moveCommand(option);
-                if (moveCountTotal == 2) { // two moves have been made
-                    moveCountTotal = 0;
+                int diceUsed = moveCommand(option);
+                if(doubleRolled) {
+                    if (moveCountTotal == 4) { // two moves have been made
+                        moveCountTotal = 0;
+                    } else {
+                        displayCheckers(diceUsed);
+                    }
+                } else {
+                    if (moveCountTotal == 2) { // two moves have been made
+                        moveCountTotal = 0;
+                    } else {
+                        displayCheckers(diceUsed);
+                    }
                 }
 
-                if (moveCountTotal == 1) {
-                    ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                    moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer); // Display moves for next dice roll;
-                    displayLegalMoves(moveTo);
+                if(LEGAL_MOVES.size() == 1) {
+                    getForcedPlayAlert();
+                    moveCommand('A');
+                    nextCommand();
+                }
+
+                if(LEGAL_MOVES.isEmpty()) {
+                    getNoMovesAlert();
+                    nextCommand();
                 }
 
                 if (GameLogic.getWinner() == Player.playerRed.getTurn() || GameLogic.getWinner() == Player.playerBlue.getTurn()) {
                     GameFinish gameFinish = new GameFinish();
                     primaryWindow.setScene(gameFinish.finishScene); // Show winner
                 }
+
             }
 
             if (textField.getText().equalsIgnoreCase("cheat")) {
                 textField.setText(""); textArea.setText("");
                 cheatCommand();
-                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-                moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer); // Display moves for next dice roll;
-                displayLegalMoves(moveTo);
-            }
+                displayCheckers(0);
+                if(LEGAL_MOVES.size() == 1) { // Forced play
+                    getForcedPlayAlert();
+                    moveCommand('A');
+                    nextCommand();
+                }
 
+                if(LEGAL_MOVES.isEmpty()) {
+                    getNoMovesAlert();
+                    nextCommand();
+                }
+            }
         });
     }
 
@@ -173,13 +202,11 @@ class UserInterface extends VBox {
             }
 
             if (Dice.roll1 == Dice.roll2) {
-                textArea.appendText("Both Players rolled a " + (Dice.roll1) + " so players must move again\n\n");
+                textArea.appendText("Both Players rolled a " + (Dice.roll1) + " so players must roll again\n\n");
             }
         } while (Dice.roll1 == Dice.roll2); // Roll to see who goes first
 
-        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-        moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer);
-        displayLegalMoves(moveTo);
+        displayCheckers(0);
     }
 
     private void nextCommand() {
@@ -197,16 +224,24 @@ class UserInterface extends VBox {
             currentPlayer = Player.playerRed.getTurn();
         }
 
-        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-        moveTo = GameLogic.findMoveTo(ownerCheckers, currentPlayer);
-        displayLegalMoves(moveTo);
+        displayCheckers(0);
+
+        if(LEGAL_MOVES.size() == 1) {
+            getForcedPlayAlert();
+            moveCommand('A');
+            nextCommand();
+        }
+
+        if(LEGAL_MOVES.isEmpty()) {
+            getNoMovesAlert();
+            nextCommand();
+        }
     }
 
     private void cheatCommand() {
-
         // Release all coordinates on board, bar and bear-off
         for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 12; j++) {
+            for (int j = 0; j < 30; j++) {
                 BoardPanel.BOARD[i][j].releaseCoordinate();
             }
         }
@@ -269,11 +304,9 @@ class UserInterface extends VBox {
 
         currentPip = 5;
         column = GameLogic.convertPipToColumn(currentPip);
-        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
-            System.out.println("Row: " + row);
             Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
             BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
             numReds++;
@@ -281,7 +314,6 @@ class UserInterface extends VBox {
 
         currentPip = 24;
         column = GameLogic.convertPipToColumn(currentPip);
-        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -292,7 +324,6 @@ class UserInterface extends VBox {
 
         currentPip = 22;
         column = GameLogic.convertPipToColumn(currentPip);
-        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -303,7 +334,6 @@ class UserInterface extends VBox {
 
         currentPip = 21;
         column = GameLogic.convertPipToColumn(currentPip);
-        System.out.println("Pip: " + currentPip + " ,Column " + column);
         for (int numCheckersInPip = 0; numCheckersInPip < 3; numCheckersInPip++) // Counts the checkers
         {
             row = GameLogic.nextRow(column, currentPip, 0);
@@ -349,62 +379,50 @@ class UserInterface extends VBox {
         }
     }
 
-    private void moveCommand(char option) {
+    private int moveCommand(char option) {
+        int diceUsed;
         textField.setText("");
         int index = option - 'A';
         if (index >= LEGAL_MOVES.size()) {
             getIllegalMoveAlert();
+            diceUsed = 0;
         } else {
             moveCountTotal += MOVE_COUNT.get(index); // Get if the move is a double or single
             int fromPip = FROM_PIPS.get(index);
             int toPip = TO_PIPS.get(index);
             makeMove(fromPip, toPip, currentPlayer);
+            diceUsed = fromPip - toPip;
 
             if (currentPlayer == Player.playerRed.getTurn()) {
                 textArea.appendText(Player.playerRed.getColour() + ": " + Player.playerRed.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                if (moveCountTotal == 2) {
-                    nextCommand();
+                if(doubleRolled) {
+                    if(moveCountTotal == 4) {
+                        nextCommand();
+                    }
+                } else {
+                    if (moveCountTotal == 2) {
+                        nextCommand();
+                    }
                 }
             } else if (currentPlayer == Player.playerBlue.getTurn()) {
                 textArea.appendText(Player.playerBlue.getColour() + ": " + Player.playerBlue.getName() + " moved checker from pip " + fromPip + " to pip " + toPip + "\n");
-                if (moveCountTotal == 2) {
-                    nextCommand();
+                if(doubleRolled) {
+                    if(moveCountTotal == 4) {
+                        nextCommand();
+                    }
+                } else {
+                    if (moveCountTotal == 2) {
+                        nextCommand();
+                    }
                 }
             }
         }
+        return diceUsed;
     }
 
-    private void displayLegalMoves(int[][] moveTo) {
-        FROM_PIPS = new ArrayList<>();
-        TO_PIPS = new ArrayList<>();
-        LEGAL_MOVES = new ArrayList<>();
-        MOVE_COUNT = new ArrayList<>();
-        char letter = 'A'; // To be used as selection option for player
-
-        textArea.appendText("Available moves:\n");
-        for (int[] ints : moveTo) {
-            if(GameLogic.canBearOff()) { // Can bear off
-
-            }
-            else { // Can't bear off
-
-            }
-        }
-
-        if (LEGAL_MOVES.size() == 0) {
-            getNoMovesAlert();
-            nextCommand();
-        }
-
-        if (LEGAL_MOVES.size() == 1) {
-            getForcedPlayAlert();
-            moveCommand('A'); // Make move with the forced legal move
-            nextCommand(); // Pass
-        } else {
-            IntStream.range(0, LEGAL_MOVES.size()).forEach(index -> textArea.appendText(LEGAL_MOVES.get(index) + "\n"));
-        }
-
-        textArea.appendText("\n");
+    private void displayCheckers(int diceUsed) {
+        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, diceUsed);
     }
 
     private void getNoMovesAlert() {
@@ -418,7 +436,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -432,7 +450,7 @@ class UserInterface extends VBox {
             }
         });
         newThread.start();
-    } // Warning for no moves available
+    }
 
     private void getForcedPlayAlert() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -445,7 +463,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -459,7 +477,7 @@ class UserInterface extends VBox {
             }
         });
         newThread.start();
-    } // Warning for forced play
+    }
 
     private void getIllegalMoveAlert() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -472,7 +490,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -486,48 +504,16 @@ class UserInterface extends VBox {
             }
         });
         newThread.start();
-    } // Warning for incorrect selection of moves
+    }
 
     private static void rolledDouble(Player player) {
         if(Dice.roll1 == Dice.roll2) {
-            textArea.appendText(player.getColour() + ": " + player.getName() + " rolled double " + Dice.roll1);
+            textArea.appendText(player.getColour() + ": " + player.getName() + " rolled double " + Dice.roll1 + "\n");
             doubleRolled = true;
         } else {
             textArea.appendText(player.getColour() + ": " + player.getName() + " rolled " + Dice.roll1 + " and " + Dice.roll2 + "\n\n");
             doubleRolled = false;
         }
     }
-//    private boolean isCanBearOff(int currentPlayer) {
-//        char currentPlayerColour;
-//        int column;
-//        int row;
-//        int pip = 0;
-//        if(currentPlayer == Player.playerBlue.getTurn()) {
-//            currentPlayerColour = 'B';
-//
-//            if() {
-//              canBearOff = false;
-//            } else {
-//                for(pip = 24; pip > 6; pip--) {
-//                    if(position is occupied with blue) canBearOff = false;
-//                }
-//                canBearOff = true;
-//              }
-//        }
-//
-//        if(currentPlayer == Player.playerRed.getTurn()) {
-//            currentPlayerColour = 'R';
-//
-//            if() {
-//              canBearOff = false;
-//            } else {
-//                for(pip = 24; pip > 6; pip--) {
-//                    if(position is occupied with blue) canBearOff = false;
-//                }
-//                canBearOff = true;
-//              }
-//        }
-//        return canBearOff;
-//    }
 }
 

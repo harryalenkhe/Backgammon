@@ -20,7 +20,7 @@ class BoardPanel {
     static Image boardImage;
     private Dice dice;
     private UserInterface UI;
-    static final Coordinates[][] BOARD = new Coordinates[12][12];
+    static final Coordinates[][] BOARD = new Coordinates[12][30];
     static final Coordinates[][] BEAR = new Coordinates[1][30];
     static final Coordinates[][] BAR = new Coordinates[1][10];
     static Checkers[] redCheckers = new Checkers[15];
@@ -101,7 +101,7 @@ class BoardPanel {
     private void setupBoard() {
         double currentColumn= 109;
         double currentRow = 91;
-        final double VERTICAL_OFFSET = 30;
+        final double VERTICAL_OFFSET = 10;
         final double HORIZONTAL_OFFSET = 33.35;
 
         for(int col = 0; col < 12; col++) {
@@ -109,9 +109,9 @@ class BoardPanel {
                 currentColumn = 375.8;
             }
 
-            for(int row = 0; row < 12; row++) {
-                if (row == 6) {
-                    currentRow = 331; // Jump to top of bottom pip and leave gap between top and bottom pips
+            for(int row = 0; row < 30; row++) {
+                if (row == 15) {
+                    currentRow = 341; // Jump to top of bottom pip and leave gap between top and bottom pips
                 }
 
                 BOARD[col][row] = new Coordinates(currentColumn, currentRow, 'E');
@@ -197,7 +197,7 @@ class BoardPanel {
 
         if(currentPlayer == Player.playerRed.getTurn()) {
             for (int i = 0; i < 15; i++) {
-                if(pip == 0) { // Moving from bar
+                if(pip == 25) { // Moving from bar
                     if (redCheckers[i].getCircleX() == BAR[0][row].getX() && redCheckers[i].getCircleY() == BAR[0][row].getY()) {
                         toBeMoved = redCheckers[i].getCircle();
                         break;
@@ -215,7 +215,7 @@ class BoardPanel {
 
         if(currentPlayer == Player.playerBlue.getTurn()) {
             for(int i = 0; i < 15; i++) {
-                if(pip == 0) {
+                if(pip == 25) {
                     if(blueCheckers[i].getCircleX() == BAR[0][row].getX() && blueCheckers[i].getCircleY() == BAR[0][row].getY()) {
                         toBeMoved = blueCheckers[i].getCircle();
                         break;
