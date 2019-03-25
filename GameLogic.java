@@ -4,8 +4,6 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 class GameLogic {
-
-    private static boolean isHit = false;
     static ArrayList<Integer> findOwnCheckers(int currentPlayer) {
         double checkerX;
         double checkerY;
@@ -307,58 +305,22 @@ class GameLogic {
                                         moveTo[index][4] = tripleToPip; // store
                                         if (isLegalMove(quadToPip, currentPlayer, false)) { // legal
                                             moveTo[index][5] = quadToPip;
-                                            if (MOVE_COUNT == 0) {
-                                                if(isHit) {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5] + "*");
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][5]);
-                                                    UserInterface.MOVE_COUNT.add(4);
-                                                } else {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5]);
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][5]);
-                                                    UserInterface.MOVE_COUNT.add(4);
-                                                }
+                                            if (UserInterface.doubleRolled && MOVE_COUNT == 0) {
+                                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5]);
+                                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                                UserInterface.TO_PIPS.add(moveTo[index][5]);
+                                                UserInterface.MOVE_COUNT.add(4);
                                             }
                                         } else { // not legal
-                                            if (MOVE_COUNT == 1 || MOVE_COUNT == 0) {
-                                                if(isHit) {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + "*");
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][4]);
-                                                    UserInterface.MOVE_COUNT.add(3);
-                                                } else {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4]);
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][4]);
-                                                    UserInterface.MOVE_COUNT.add(3);
-                                                }
+                                            if (UserInterface.doubleRolled && (MOVE_COUNT == 1 || MOVE_COUNT == 0)) {
+                                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4]);
+                                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                                UserInterface.TO_PIPS.add(moveTo[index][4]);
+                                                UserInterface.MOVE_COUNT.add(3);
                                             }
                                         }
                                     } else { // not legal
                                         if (MOVE_COUNT == 0 || MOVE_COUNT == 2) {
-                                            if(isHit) {
-                                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + "*");
-                                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                                UserInterface.MOVE_COUNT.add(2);
-                                            } else {
-                                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3]);
-                                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                                UserInterface.MOVE_COUNT.add(2);
-                                            }
-                                        }
-                                    }
-                                }
-                                else {
-                                    if (MOVE_COUNT == 0 || MOVE_COUNT == 2) {
-                                        if(isHit) {
-                                            UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3] + "*");
-                                            UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                            UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                            UserInterface.MOVE_COUNT.add(2);
-                                        } else {
                                             UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3]);
                                             UserInterface.FROM_PIPS.add(moveTo[index][0]);
                                             UserInterface.TO_PIPS.add(moveTo[index][3]);
@@ -366,18 +328,19 @@ class GameLogic {
                                         }
                                     }
                                 }
-                            } else { // Store as single if double is not a legal move
-                                if(isHit) {
-                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + "*");
-                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                    UserInterface.TO_PIPS.add(moveTo[index][1]);
-                                    UserInterface.MOVE_COUNT.add(1);
-                                } else {
-                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1]);
-                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                    UserInterface.TO_PIPS.add(moveTo[index][1]);
-                                    UserInterface.MOVE_COUNT.add(1);
+                                else {
+                                    if (MOVE_COUNT == 0 || MOVE_COUNT == 2) {
+                                        UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1] + " " + moveTo[index][1] + " - " + moveTo[index][3]);
+                                        UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                        UserInterface.TO_PIPS.add(moveTo[index][3]);
+                                        UserInterface.MOVE_COUNT.add(2);
+                                    }
                                 }
+                            } else { // Store as single if double is not a legal move
+                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][1]);
+                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                UserInterface.TO_PIPS.add(moveTo[index][1]);
+                                UserInterface.MOVE_COUNT.add(1);
                             }
                         }
                     }
@@ -394,63 +357,25 @@ class GameLogic {
                                             moveTo[index][5] = quadToPip;
                                             if (!isLegalMove(singleToPip1, currentPlayer, false)) {
                                                 if (MOVE_COUNT == 0) {
-                                                    if(isHit) {
-                                                        UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5] + "*");
-                                                        UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                        UserInterface.TO_PIPS.add(moveTo[index][5]);
-                                                        UserInterface.MOVE_COUNT.add(4);
-                                                    } else {
-                                                        UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5]);
-                                                        UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                        UserInterface.TO_PIPS.add(moveTo[index][5]);
-                                                        UserInterface.MOVE_COUNT.add(4);
-                                                    }
+                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + " " + moveTo[index][4] + " - " + moveTo[index][5]);
+                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                                    UserInterface.TO_PIPS.add(moveTo[index][5]);
+                                                    UserInterface.MOVE_COUNT.add(4);
                                                 }
                                             }
                                         } else { // not legal
                                             if (!isLegalMove(singleToPip1, currentPlayer, false)) {
                                                 if (MOVE_COUNT == 1 || MOVE_COUNT == 0) {
-                                                    if(isHit) {
-                                                        UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4] + "*");
-                                                        UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                        UserInterface.TO_PIPS.add(moveTo[index][4]);
-                                                        UserInterface.MOVE_COUNT.add(3);
-                                                    } else {
-                                                        UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4]);
-                                                        UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                        UserInterface.TO_PIPS.add(moveTo[index][4]);
-                                                        UserInterface.MOVE_COUNT.add(3);
-                                                    }
+                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + " " + moveTo[index][3] + " - " + moveTo[index][4]);
+                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                                    UserInterface.TO_PIPS.add(moveTo[index][4]);
+                                                    UserInterface.MOVE_COUNT.add(3);
                                                 }
                                             }
                                         }
                                     } else { // not legal
                                         if (!isLegalMove(singleToPip1, currentPlayer, false)) {
                                             if (MOVE_COUNT == 0 || MOVE_COUNT == 2) {
-                                                if(isHit) {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + "*");
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                                    UserInterface.MOVE_COUNT.add(2);
-                                                } else {
-                                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3]);
-                                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                    UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                                    UserInterface.MOVE_COUNT.add(2);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                else {
-                                    if(!isLegalMove(singleToPip1, currentPlayer, false)) {
-                                        if (MOVE_COUNT == 0) {
-                                            if(isHit) {
-                                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3] + "*");
-                                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                                UserInterface.TO_PIPS.add(moveTo[index][3]);
-                                                UserInterface.MOVE_COUNT.add(2);
-                                            } else {
                                                 UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3]);
                                                 UserInterface.FROM_PIPS.add(moveTo[index][0]);
                                                 UserInterface.TO_PIPS.add(moveTo[index][3]);
@@ -459,18 +384,21 @@ class GameLogic {
                                         }
                                     }
                                 }
-                            } else { // not legal
-                                if(isHit) {
-                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + "*");
-                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                    UserInterface.TO_PIPS.add(moveTo[index][2]);
-                                    UserInterface.MOVE_COUNT.add(1);
-                                } else {
-                                    UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2]);
-                                    UserInterface.FROM_PIPS.add(moveTo[index][0]);
-                                    UserInterface.TO_PIPS.add(moveTo[index][2]);
-                                    UserInterface.MOVE_COUNT.add(1);
+                                else {
+                                    if(!isLegalMove(singleToPip1, currentPlayer, false)) {
+                                        if (MOVE_COUNT == 0) {
+                                            UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2] + " " + moveTo[index][2] + " - " + moveTo[index][3]);
+                                            UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                            UserInterface.TO_PIPS.add(moveTo[index][3]);
+                                            UserInterface.MOVE_COUNT.add(2);
+                                        }
+                                    }
                                 }
+                            } else { // not legal
+                                UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - " + moveTo[index][2]);
+                                UserInterface.FROM_PIPS.add(moveTo[index][0]);
+                                UserInterface.TO_PIPS.add(moveTo[index][2]);
+                                UserInterface.MOVE_COUNT.add(1);
                             }
                         }
                     }
@@ -630,12 +558,10 @@ class GameLogic {
 
         if(canBearOff) {
             if(pip == 0) {
-                isHit = false;
                 return true;
             }
         } else {
             if(pip == 0) {
-                isHit = false;
                 return false;
             }
         }
@@ -645,7 +571,6 @@ class GameLogic {
         // Second, find free row in that pip
         freeRowInPip = nextRow(columnOfPip,pip,currentPlayer);
         if(freeRowInPip == -1) {
-            isHit = false;
             return false;
         }
 
@@ -667,26 +592,20 @@ class GameLogic {
         }
 
         if(colourOfPosition == 'E') {
-            isHit = false;
             return true;
         } else {
             // Fourth, Check if colour matches current players checker
             if (currentPlayer == Player.playerRed.getTurn()) {
                 if (colourOfPosition == 'R') { // Own checker
                     legalMove = true;
-                    isHit = false;
-                } else if (colourOfPosition == 'B') { // Not own checker // HIT
+                } else if (colourOfPosition == 'B') { // Not own checker
                     legalMove = (freeRowInPip == 28 || freeRowInPip == 1);
-                    isHit = true;
-
                 }
             } else if (currentPlayer == Player.playerBlue.getTurn()) {
                 if (colourOfPosition == 'B') { // Own checker
                     legalMove = true;
-                    isHit = false;
-                } else if (colourOfPosition == 'R') { // HIT
+                } else if (colourOfPosition == 'R') {
                     legalMove = (freeRowInPip == 28 || freeRowInPip == 1);
-                    isHit = true;
                 }
             }
             return legalMove;

@@ -8,9 +8,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javax.imageio.ImageIO;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import javax.swing.Timer;
 
 class UserInterface extends VBox {
     private static TextField textField;
@@ -101,7 +104,7 @@ class UserInterface extends VBox {
     private void gamePlay(Stage primaryWindow) {
         textField.setOnAction(E -> {
             // Takes input of two numbers and splits into two indexes of array
-            String moveOption = textField.getText().toUpperCase().trim();
+            String moveOption = textField.getText().toUpperCase();
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
@@ -121,7 +124,7 @@ class UserInterface extends VBox {
                 System.exit(0);
             }
 
-            if (moveOption.length() == 1 && moveOption.matches("\\w")) {
+            if (moveOption.trim().length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
 
                 int diceUsed = moveCommand(option);
@@ -129,13 +132,15 @@ class UserInterface extends VBox {
                     if (moveCountTotal == 4) { // two moves have been made
                         moveCountTotal = 0;
                     } else {
-                        displayCheckers(diceUsed);
+                        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, diceUsed); // Display moves for next dice roll;
                     }
                 } else {
                     if (moveCountTotal == 2) { // two moves have been made
                         moveCountTotal = 0;
                     } else {
-                        displayCheckers(diceUsed);
+                        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, diceUsed); // Display moves for next dice roll;
                     }
                 }
 
@@ -160,8 +165,9 @@ class UserInterface extends VBox {
             if (textField.getText().equalsIgnoreCase("cheat")) {
                 textField.setText(""); textArea.setText("");
                 cheatCommand();
-                displayCheckers(0);
-                if(LEGAL_MOVES.size() == 1) { // Forced play
+                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, 0); // Display moves for next dice roll;
+                if(LEGAL_MOVES.size() == 1) {
                     getForcedPlayAlert();
                     moveCommand('A');
                     nextCommand();
@@ -172,6 +178,7 @@ class UserInterface extends VBox {
                     nextCommand();
                 }
             }
+
         });
     }
 
@@ -206,7 +213,8 @@ class UserInterface extends VBox {
             }
         } while (Dice.roll1 == Dice.roll2); // Roll to see who goes first
 
-        displayCheckers(0);
+        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, 0);
     }
 
     private void nextCommand() {
@@ -224,8 +232,8 @@ class UserInterface extends VBox {
             currentPlayer = Player.playerRed.getTurn();
         }
 
-        displayCheckers(0);
-
+        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, 0);
         if(LEGAL_MOVES.size() == 1) {
             getForcedPlayAlert();
             moveCommand('A');
@@ -420,11 +428,6 @@ class UserInterface extends VBox {
         return diceUsed;
     }
 
-    private void displayCheckers(int diceUsed) {
-        ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
-        GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, diceUsed);
-    }
-
     private void getNoMovesAlert() {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("No moves available");
@@ -436,7 +439,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1500);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -463,7 +466,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1500);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -490,7 +493,7 @@ class UserInterface extends VBox {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
