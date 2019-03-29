@@ -1,6 +1,10 @@
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -15,16 +19,21 @@ class AnnounceGame {
     private Group welcomeGroup;
     private VBox playerDetails;
     private Player player;
+    private HBox scoreBox;
+    private int matchScore;
+    private String matchInfo;
 
     AnnounceGame(Stage primaryWindow) {
         welcomeGroup = new Group();
         effects = new Effects();
         new BoardPanel(primaryWindow);
         player = new Player();
-        player.getDetails(primaryWindow);
+        player.getDetails();
         setWelcomeText();
         setButtons();
+        setMatchScore(primaryWindow);
         setPlayerDetails();
+
         setWelcomeScene();
     }
 
@@ -69,14 +78,69 @@ class AnnounceGame {
     }
 
     private void setPlayerDetails() {
-        playerDetails = new VBox(player.RedPlayer, player.BluePlayer);
-        playerDetails.setSpacing(5);
+        playerDetails = new VBox(player.RedPlayer, player.BluePlayer,scoreBox);
+        playerDetails.setSpacing(10);
         playerDetails.setLayoutX(200);
         playerDetails.setLayoutY(300);
+    }
+
+    private void setMatchScore(Stage primaryWindow){
+        effects = new Effects();
+
+        Text label = new Text("How many points you are playing to:");
+        label.setEffect(effects.goldGlow);
+        label.setFill(Color.BLACK);
+        label.setFont(Font.font(null, FontWeight.BOLD, 16));
+
+        TextField textField = new TextField();
+        textField.setPromptText("Enter number of points.");
+        textField.setOnAction(E -> {
+            if ((textField.getText() != null && !textField.getText().isEmpty())) {
+                matchScore = Integer.parseInt(textField.getText());
+                matchInfo = "To win you must get: " + matchScore + " points.\n";
+                scoreBox.getChildren().remove(textField);
+                label.setText(matchInfo);
+                primaryWindow.setScene(BoardPanel.gameBoard);
+            } else {
+                getAlert();
+            }
+        });
+
+        scoreBox = new HBox();
+        scoreBox.getChildren().setAll(label, textField);
+        scoreBox.setSpacing(5);
     }
 
     private void setWelcomeScene() {
         welcomeScene = new Scene(welcomeGroup, 1060, 600);
         welcomeScene.setFill(effects.blueToRed); // Set color
     }
+
+    private void getAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("No score entered");
+        alert.setHeaderText("NO PLAYING SCORE ENTERED");
+        alert.setContentText("Please enter a match score before continuing");
+        alert.show();
+
+        Thread newThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        alert.close();
+                    }
+                });
+            }
+        });
+        newThread.start();
+    }
+
 }

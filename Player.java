@@ -39,7 +39,7 @@ class Player {
 		return this.colour;
 	}
 
-	void getDetails(Stage primaryWindow) {
+	void getDetails() {
 		effects = new Effects();
 
 		Text label1 = new Text("Enter Player's Name:");
@@ -73,7 +73,6 @@ class Player {
 				p2Info = playerBlue.getName() + " = " + playerBlue.getColour() + "\n";
 				BluePlayer.getChildren().remove(textField2);
 				label2.setText(p2Info);
-				primaryWindow.setScene(BoardPanel.gameBoard);
 			} else {
 				getAlert();
 			}
