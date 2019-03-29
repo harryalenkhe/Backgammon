@@ -108,6 +108,7 @@ class UserInterface extends VBox {
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
+                BoardPanel.displayScore();
                 if(LEGAL_MOVES.size() == 1) {
                     getForcedPlayAlert();
                     moveCommand('A');

@@ -19,12 +19,12 @@ import java.util.stream.IntStream;
 class BoardPanel {
     private BufferedImage emptyBoardImage;
     static Scene gameBoard;
-    private Group gameComponents;
+    private static Group gameComponents;
     static ImageView gameView;
     static Image boardImage;
     private Dice dice;
     private UserInterface UI;
-    private HBox scoreBox;
+    private static HBox scoreBox;
     static final Coordinates[][] BOARD = new Coordinates[12][30];
     static final Coordinates[][] BEAR = new Coordinates[1][30];
     static final Coordinates[][] BAR = new Coordinates[1][10];
@@ -38,7 +38,6 @@ class BoardPanel {
         dice = new Dice();
         UI = new UserInterface(primaryWindow);
         setBoardImage();
-        setMatchScore();
         setupBoard();
         setupBear();
         setupBar();
@@ -48,17 +47,14 @@ class BoardPanel {
         setGameBoard();
     }
 
-    private void setMatchScore() {
-        int matchScore = 10;
-        effects = new Effects();
+    static void displayScore() {
+        System.out.println(AnnounceGame.matchScore);
 
         Text label1 = new Text("This match is being played to ");
-        label1.setEffect(effects.goldGlow);
         label1.setFill(Color.BLACK);
         label1.setFont(Font.font(null, FontWeight.BOLD, 20));
 
-        Text label2 = new Text(matchScore+" POINTS");
-        label2.setEffect(effects.goldGlow);
+        Text label2 = new Text(AnnounceGame.matchScore+" POINTS");
         label2.setFill(Color.BLACK);
         label2.setUnderline(true);
         label2.setFont(Font.font(null, FontWeight.BOLD, 24));
@@ -68,10 +64,11 @@ class BoardPanel {
         scoreBox.setSpacing(5);
         scoreBox.setLayoutY(25);
         scoreBox.setLayoutX(30);
+        gameComponents.getChildren().add(scoreBox);
     }
 
     private void setGameComponents() {
-        gameComponents.getChildren().addAll(gameView, UI, dice, scoreBox);
+        gameComponents.getChildren().addAll(gameView, UI, dice);
         // Add checkers to board
         IntStream.range(0, 15).forEach(i -> gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle()));
     }

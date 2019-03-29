@@ -20,7 +20,7 @@ class AnnounceGame {
     private VBox playerDetails;
     private Player player;
     private HBox scoreBox;
-    private int matchScore;
+    static int matchScore;
     private String matchInfo;
 
     AnnounceGame(Stage primaryWindow) {
@@ -84,8 +84,6 @@ class AnnounceGame {
     }
 
     private void setMatchScore(Stage primaryWindow){
-        effects = new Effects();
-
         Text label = new Text("How many points you are playing to:");
         label.setEffect(effects.goldGlow);
         label.setFill(Color.BLACK);
@@ -96,6 +94,7 @@ class AnnounceGame {
         textField.setOnAction(E -> {
             if ((textField.getText() != null && !textField.getText().isEmpty())) {
                 matchScore = Integer.parseInt(textField.getText());
+                System.out.println(matchScore);
                 matchInfo = "To win you must get: " + matchScore + " points.\n";
                 scoreBox.getChildren().remove(textField);
                 label.setText(matchInfo);
