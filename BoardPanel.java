@@ -5,7 +5,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.scene.layout.HBox;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,6 +24,7 @@ class BoardPanel {
     static Image boardImage;
     private Dice dice;
     private UserInterface UI;
+    private HBox scoreBox;
     static final Coordinates[][] BOARD = new Coordinates[12][30];
     static final Coordinates[][] BEAR = new Coordinates[1][30];
     static final Coordinates[][] BAR = new Coordinates[1][10];
@@ -33,6 +38,7 @@ class BoardPanel {
         dice = new Dice();
         UI = new UserInterface(primaryWindow);
         setBoardImage();
+        setMatchScore();
         setupBoard();
         setupBear();
         setupBar();
@@ -41,9 +47,31 @@ class BoardPanel {
         setGameComponents();
         setGameBoard();
     }
-    
+
+    private void setMatchScore() {
+        int matchScore = 10;
+        effects = new Effects();
+
+        Text label1 = new Text("This match is being played to ");
+        label1.setEffect(effects.goldGlow);
+        label1.setFill(Color.BLACK);
+        label1.setFont(Font.font(null, FontWeight.BOLD, 20));
+
+        Text label2 = new Text(matchScore+" POINTS");
+        label2.setEffect(effects.goldGlow);
+        label2.setFill(Color.BLACK);
+        label2.setUnderline(true);
+        label2.setFont(Font.font(null, FontWeight.BOLD, 24));
+
+        scoreBox = new HBox();
+        scoreBox.getChildren().setAll(label1,label2);
+        scoreBox.setSpacing(5);
+        scoreBox.setLayoutY(25);
+        scoreBox.setLayoutX(30);
+    }
+
     private void setGameComponents() {
-        gameComponents.getChildren().addAll(gameView, UI, dice);
+        gameComponents.getChildren().addAll(gameView, UI, dice, scoreBox);
         // Add checkers to board
         IntStream.range(0, 15).forEach(i -> gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle()));
     }

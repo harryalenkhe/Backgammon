@@ -33,7 +33,6 @@ class AnnounceGame {
         setButtons();
         setMatchScore(primaryWindow);
         setPlayerDetails();
-
         setWelcomeScene();
     }
 

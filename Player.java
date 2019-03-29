@@ -4,7 +4,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
-import javafx.stage.Stage;
 
 class Player {
 	private String name;
