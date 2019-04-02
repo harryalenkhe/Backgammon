@@ -50,17 +50,12 @@ class BoardPanel {
     static void displayScore() {
         System.out.println(AnnounceGame.matchScore);
 
-        Text label1 = new Text("This match is being played to ");
+        Text label1 = new Text("This match is being played to " + AnnounceGame.matchScore + " points");
         label1.setFill(Color.BLACK);
         label1.setFont(Font.font(null, FontWeight.BOLD, 20));
 
-        Text label2 = new Text(AnnounceGame.matchScore+" POINTS");
-        label2.setFill(Color.BLACK);
-        label2.setUnderline(true);
-        label2.setFont(Font.font(null, FontWeight.BOLD, 24));
-
         scoreBox = new HBox();
-        scoreBox.getChildren().setAll(label1,label2);
+        scoreBox.getChildren().setAll(label1);
         scoreBox.setSpacing(5);
         scoreBox.setLayoutY(25);
         scoreBox.setLayoutX(30);
@@ -258,4 +253,3 @@ class BoardPanel {
         return toBeMoved;
     }
 }
-

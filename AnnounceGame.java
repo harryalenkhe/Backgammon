@@ -16,12 +16,14 @@ class AnnounceGame {
 
     Scene welcomeScene;
     private Effects effects;
-    private Group welcomeGroup;
-    private VBox playerDetails;
+    Group welcomeGroup;
+    VBox playerDetails;
     private Player player;
     private HBox scoreBox;
     static int matchScore;
     private String matchInfo;
+    Button startButton;
+    Button quitButton;
 
     AnnounceGame(Stage primaryWindow) {
         welcomeGroup = new Group();
@@ -51,13 +53,13 @@ class AnnounceGame {
     }
 
     private void setButtons() {
-        Button startButton = new Button("START");
+        startButton = new Button("START");
         startButton.setLayoutX(475);
         startButton.setLayoutY(250);
         startButton.setTextFill(Color.BLACK);
         startButton.setMinSize(100, 40);
 
-        Button quitButton = new Button("QUIT");
+        quitButton = new Button("QUIT");
         quitButton.setLayoutX(475);
         quitButton.setLayoutY(300);
         quitButton.setTextFill(Color.BLACK);

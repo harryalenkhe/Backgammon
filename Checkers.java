@@ -27,12 +27,12 @@ class Checkers extends Group {
             circle.setCenterY(BoardPanel.BAR[column][row].getY());
         }
 
-        if (pip == 0) {
+        else if (pip == 0) {
             circle.setCenterX(BoardPanel.BEAR[column][row].getX());
             circle.setCenterY(BoardPanel.BEAR[column][row].getY());
         }
 
-        if (pip >= 1 && pip <= 24) {
+        else if (pip >= 1 && pip <= 24) {
             circle.setCenterX(BoardPanel.BOARD[column][row].getX());
             circle.setCenterY(BoardPanel.BOARD[column][row].getY());
         }

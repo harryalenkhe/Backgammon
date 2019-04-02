@@ -287,10 +287,16 @@ class GameLogic {
                         }
                     }
 
-                    System.out.println(UserInterface.LEGAL_MOVES.size());
-                    UserInterface.textArea.appendText("Available moves: \n");
-                    IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(i -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(i) + "\n"));
-                    UserInterface.textArea.appendText("\n");
+                    if(UserInterface.LEGAL_MOVES.size() == 0) {
+                        UserInterface.textArea.appendText("No available moves\n");
+                    } else if(UserInterface.LEGAL_MOVES.size() == 1) {
+                        UserInterface.textArea.appendText("Only one available move\n");
+                        IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(i -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(i) + "\n"));
+                    } else {
+                        UserInterface.textArea.appendText("Available moves: \n");
+                        IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(i -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(i) + "\n"));
+                        UserInterface.textArea.appendText("\n");
+                    }
                     return;
                 }
 
@@ -405,11 +411,16 @@ class GameLogic {
                 }
             }
         }
-
-        System.out.println(UserInterface.LEGAL_MOVES.size());
-        UserInterface.textArea.appendText("Available moves: \n");
-        IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(index -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(index) + "\n"));
-        UserInterface.textArea.appendText("\n");
+        if(UserInterface.LEGAL_MOVES.size() == 0) {
+            UserInterface.textArea.appendText("No available moves\n");
+        } else if(UserInterface.LEGAL_MOVES.size() == 1) {
+            UserInterface.textArea.appendText("Only one available move\n");
+            IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(index -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(index) + "\n"));
+        } else {
+            UserInterface.textArea.appendText("Available moves: \n");
+            IntStream.range(0, UserInterface.LEGAL_MOVES.size()).forEach(index -> UserInterface.textArea.appendText(UserInterface.LEGAL_MOVES.get(index) + "\n"));
+            UserInterface.textArea.appendText("\n");
+        }
     }
 
     static int convertPipToColumn(int pip) {
@@ -539,11 +550,13 @@ class GameLogic {
 
     static int getWinner() { // Check if last position in Bear Off is taken
         if(BoardPanel.BEAR[0][29].isTaken()) { // If last position for reds Bear off is taken then red wins
+            //UPDATE MATCHSCORE FOR RED
             // PLAYER RED WINS
             return Player.playerRed.getTurn();
         }
 
         if(BoardPanel.BEAR[0][14].isTaken()) { // If last position for blues Bear off is taken then blue wins
+            // UPDATE MATCHSCORE FOR BLUE
             // PLAYER BLUE WINS
             return Player.playerBlue.getTurn();
         }

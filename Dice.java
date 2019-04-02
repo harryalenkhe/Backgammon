@@ -16,7 +16,7 @@ class Dice extends Group {
     private static StackPane dice1;
     private static StackPane dice2;
     private static StackPane doublingCube;
-//    static int x = 1;
+    static int x = 1;
 
     Dice() {
         setUpDice();
@@ -81,60 +81,59 @@ class Dice extends Group {
         doublingCube.setLayoutX(35);
     }
 
-//    static void firstDoubleOdds() {
-//        doublingCube.getChildren().remove(cubeNumber);
-//        x = x*2;
-//        String num = Integer.toString(x);
-//        cubeNumber = new Text(num);
-//        cubeNumber.setFill(Color.WHITE);
-//        doublingCube.getChildren().add(cubeNumber);
-//    }
-//
-//    static int doubleOdds(int currentPlayer, int currentHolder) {
-//        if(canPlayerDouble(currentPlayer ,currentHolder)) { // If player wants to double
-//            if(currentHolder == Player.playerRed.getTurn()) { // Red Player
-//                doublingCube.getChildren().remove(cubeNumber);
-//                x = x*2;
-//                String num = Integer.toString(x);
-//                cubeNumber = new Text(num);
-//                cubeNumber.setFill(Color.WHITE);
-//                doublingCube.getChildren().add(cubeNumber);
-//                currentHolder = Player.playerBlue.getTurn();
-//                UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
-//                UserInterface.textArea.appendText(Player.playerBlue.getName() + " now holds the Doubling Cube\n");
-//            }
-//
-//            else {
-//                doublingCube.getChildren().remove(cubeNumber);
-//                x = x * 2;
-//                String num = Integer.toString(x);
-//                cubeNumber = new Text(num);
-//                cubeNumber.setFill(Color.WHITE);
-//                doublingCube.getChildren().add(cubeNumber);
-//                currentHolder = Player.playerRed.getTurn();
-//                UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
-//                UserInterface.textArea.appendText(Player.playerRed.getName() + " now holds the Doubling Cube\n");
-//            }
-//        }
-//
-//        else {
-//            UserInterface.textArea.appendText("Player can not double cube\n");
-//        }
-//
-//        return currentHolder;
-//    }
+    static void doubleOdds(int currentPlayer) {
+        if(UserInterface.currentHolder == Player.playerRed.getTurn()) { // Red Player
+            doublingCube.getChildren().remove(cubeNumber);
+            x = x*2;
+            String num = Integer.toString(x);
+            cubeNumber = new Text(num);
+            cubeNumber.setFill(Color.WHITE);
+            doublingCube.getChildren().add(cubeNumber);
+            UserInterface.currentHolder = Player.playerBlue.getTurn();
+            UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
+            UserInterface.textArea.appendText(Player.playerBlue.getName() + " now holds the Doubling Cube\n");
+        }
 
-//    private static boolean canPlayerDouble(int currentPlayer, int currentHolder) {
-//        boolean canDouble;
-//        canDouble = currentPlayer == currentHolder;
-//        return canDouble;
-//    }
-//
-//    static boolean acceptDouble(String acceptOrNot) {
-//        boolean decision;
-//
-//        decision = acceptOrNot.equalsIgnoreCase("Yes");
-//
-//        return decision;
-//    }
+        else if(UserInterface.currentHolder == Player.playerBlue.getTurn()){
+            doublingCube.getChildren().remove(cubeNumber);
+            x = x * 2;
+            String num = Integer.toString(x);
+            cubeNumber = new Text(num);
+            cubeNumber.setFill(Color.WHITE);
+            doublingCube.getChildren().add(cubeNumber);
+            UserInterface.currentHolder = Player.playerRed.getTurn();
+            UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
+            UserInterface.textArea.appendText(Player.playerRed.getName() + " now holds the Doubling Cube\n");
+        }
+
+        else if(UserInterface.currentHolder == 0) { // First double no one holds it
+            doublingCube.getChildren().remove(cubeNumber);
+            x = x*2;
+            String num = Integer.toString(x);
+            cubeNumber = new Text(num);
+            cubeNumber.setFill(Color.WHITE);
+            doublingCube.getChildren().add(cubeNumber);
+            if(currentPlayer == Player.playerRed.getTurn()) {
+                UserInterface.currentHolder = Player.playerBlue.getTurn();
+                UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
+                UserInterface.textArea.appendText(Player.playerBlue.getName() + " now holds the Doubling Cube\n");
+            } else {
+                UserInterface.currentHolder = Player.playerRed.getTurn();
+                UserInterface.textArea.appendText("Odds are now " + Dice.x + "\n");
+                UserInterface.textArea.appendText(Player.playerRed.getName() + " now holds the Doubling Cube\n");
+            }
+        }
+    }
+
+    static boolean canPlayerDouble(int currentPlayer, int currentHolder) {
+        if(currentHolder == 0) {
+           return true;
+        } else {
+            if(currentHolder == currentPlayer) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 }
