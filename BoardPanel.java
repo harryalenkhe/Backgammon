@@ -25,6 +25,7 @@ class BoardPanel {
     private Dice dice;
     private UserInterface UI;
     private static HBox scoreBox;
+    private static HBox scoreBoard;
     static final Coordinates[][] BOARD = new Coordinates[12][30];
     static final Coordinates[][] BEAR = new Coordinates[1][30];
     static final Coordinates[][] BAR = new Coordinates[1][10];
@@ -47,9 +48,29 @@ class BoardPanel {
         setGameBoard();
     }
 
-    static void displayScore() {
-        System.out.println(AnnounceGame.matchScore);
+    static void setScoreBoard() {
+        Text currentScore= new Text("Current Match Score: ");
+        Text redScore = new Text( Integer.toString(Player.playerRed.getRedMatchScore()));
+        Text blueScore = new Text( Integer.toString(Player.playerRed.getRedMatchScore()));
+        Text dash = new Text("-");
+        currentScore.setFill(Color.BLACK);
+        redScore.setFill(Color.RED);
+        blueScore.setFill(Color.BLUE);
+        dash.setFill(Color.BLACK);
+        redScore.setFont(Font.font(null, FontWeight.BOLD, 26));
+        blueScore.setFont(Font.font(null, FontWeight.BOLD, 26));
+        dash.setFont(Font.font(null, FontWeight.BOLD, 26));
+        currentScore.setFont(Font.font(null, FontWeight.BOLD, 20));
 
+        scoreBoard = new HBox();
+        scoreBoard.getChildren().setAll(currentScore,redScore,dash,blueScore);
+        scoreBoard.setSpacing(5);
+        scoreBoard.setLayoutY(25);
+        scoreBoard.setLayoutX(700);
+        gameComponents.getChildren().add(scoreBoard);
+    }
+
+    static void displayMatchScore() {
         Text label1 = new Text("This match is being played to " + AnnounceGame.matchScore + " points");
         label1.setFill(Color.BLACK);
         label1.setFont(Font.font(null, FontWeight.BOLD, 20));

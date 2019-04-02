@@ -16,6 +16,8 @@ class Player {
 	private String p1Info;
 	private String p2Info;
 	private Effects effects;
+	private int blueMatchScore=0;
+	private int redMatchScore=0;
 
 	Player() {
 		this.name = "";
@@ -93,6 +95,19 @@ class Player {
 	int getTurn() {
 		return this.turn;
 	}
+
+	void updateMatchScore(int winner, int gameScore){
+		if(winner == playerBlue.getTurn()){
+			blueMatchScore+=gameScore;
+		}
+		else{
+			redMatchScore+=gameScore;
+		}
+	}
+
+	int getBlueMatchScore(){ return blueMatchScore; }
+
+	int getRedMatchScore(){ return redMatchScore; }
 
 	private void getAlert() {
 		Alert alert = new Alert(Alert.AlertType.WARNING);

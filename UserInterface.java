@@ -107,7 +107,8 @@ class UserInterface extends VBox {
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
-                BoardPanel.displayScore();
+                BoardPanel.displayMatchScore();
+                BoardPanel.setScoreBoard();
                 if(LEGAL_MOVES.size() == 1) {
                     getForcedPlayAlert();
                 }
