@@ -27,6 +27,7 @@ class UserInterface extends VBox {
     private int currentPlayer;
     static int currentHolder = 0;
     static boolean doubleRolled = false;
+    static int pointsWon = Dice.currentOdds;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -107,7 +108,7 @@ class UserInterface extends VBox {
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
-                BoardPanel.displayMatchScore();
+                BoardPanel.displayMatchLength();
                 BoardPanel.setScoreBoard();
                 if(LEGAL_MOVES.size() == 1) {
                     getForcedPlayAlert();
@@ -368,25 +369,49 @@ class UserInterface extends VBox {
     }
 
     private void announceGameWinner(Stage primaryWindow, String acceptDouble) {
-        if (GameLogic.getWinner() == Player.playerBlue.getTurn()) {
-            MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
-            primaryWindow.setScene(matchFinish.finishScene); // Show winner
+        if (GameLogic.getWinner() == Player.playerBlue.getTurn()) { // After player wins a game
+            Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), pointsWon);
+            if(Player.playerBlue.getBlueMatchScore() >= AnnounceGame.matchLength) {
+                MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
+                primaryWindow.setScene(matchFinish.finishScene); // Show winner
+            } else {
+                BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                primaryWindow.setScene(BoardPanel.gameBoard);
+            }
         }
 
         if (GameLogic.getWinner() == Player.playerRed.getTurn()) {
-            MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
-            primaryWindow.setScene(matchFinish.finishScene); // Show winner
+            Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), pointsWon);
+            if(Player.playerRed.getRedMatchScore() >= AnnounceGame.matchLength) {
+                MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
+                primaryWindow.setScene(matchFinish.finishScene); // Show winner
+            } else {
+                BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                primaryWindow.setScene(BoardPanel.gameBoard);
+            }
         }
 
         if (acceptDouble.equalsIgnoreCase("No")) {
             if(currentPlayer == Player.playerRed.getTurn()) {
-                MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
-                primaryWindow.setScene(matchFinish.finishScene); // Show winner
+                Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), pointsWon);
+                if(Player.playerRed.getRedMatchScore() >= AnnounceGame.matchLength) {
+                    MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
+                    primaryWindow.setScene(matchFinish.finishScene); // Show winner
+                } else {
+                    BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                    primaryWindow.setScene(BoardPanel.gameBoard);
+                }
             }
 
             else {
-                MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
-                primaryWindow.setScene(matchFinish.finishScene); // Show winner
+                Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), pointsWon);
+                if(Player.playerBlue.getBlueMatchScore() >= AnnounceGame.matchLength) {
+                    MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
+                    primaryWindow.setScene(matchFinish.finishScene); // Show winner
+                } else {
+                    BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                    primaryWindow.setScene(BoardPanel.gameBoard);
+                }
             }
         }
     }
@@ -398,22 +423,14 @@ class UserInterface extends VBox {
         alert.setContentText("Your turn will now be passed");
         alert.show();
 
-        Thread newThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        alert.close();
-                    }
-                });
+        Thread newThread = new Thread(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
+
+            Platform.runLater(alert::close);
         });
         newThread.start();
     }
@@ -425,22 +442,14 @@ class UserInterface extends VBox {
         alert.setContentText("The move will now be executed");
         alert.show();
 
-        Thread newThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        alert.close();
-                    }
-                });
+        Thread newThread = new Thread(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
+
+            Platform.runLater(alert::close);
         });
         newThread.start();
     }
@@ -452,22 +461,14 @@ class UserInterface extends VBox {
         alert.setContentText("Please enter a valid move");
         alert.show();
 
-        Thread newThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        alert.close();
-                    }
-                });
+        Thread newThread = new Thread(() -> {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
+
+            Platform.runLater(alert::close);
         });
         newThread.start();
     }

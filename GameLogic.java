@@ -549,15 +549,14 @@ class GameLogic {
     }
 
     static int getWinner() { // Check if last position in Bear Off is taken
-        int score =2;
         if(BoardPanel.BEAR[0][29].isTaken()) { // If last position for reds Bear off is taken then red wins
-            Player.playerRed.updateMatchScore(Player.playerRed.getTurn(),score);
+            Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), UserInterface.pointsWon);
             // PLAYER RED WINS
             return Player.playerRed.getTurn();
         }
 
         if(BoardPanel.BEAR[0][14].isTaken()) { // If last position for blues Bear off is taken then blue wins
-            Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(),score);
+            Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), UserInterface.pointsWon);
             // PLAYER BLUE WINS
             return Player.playerBlue.getTurn();
         }
@@ -627,7 +626,7 @@ class GameLogic {
     }
 
     private static boolean isBearOffMove(int pip) {
-        return (pip == 0);
+        return (pip <= 0);
     }
 
     private static boolean canBearOff(ArrayList<Integer> ownCheckersArrayList, int currentPlayer) {

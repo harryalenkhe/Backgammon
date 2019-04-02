@@ -20,7 +20,7 @@ class AnnounceGame {
     VBox playerDetails;
     private Player player;
     private HBox scoreBox;
-    static int matchScore;
+    static int matchLength;
     private String matchInfo;
     Button startButton;
     Button quitButton;
@@ -95,9 +95,8 @@ class AnnounceGame {
         textField.setPromptText("Enter number of points.");
         textField.setOnAction(E -> {
             if ((textField.getText() != null && !textField.getText().isEmpty())) {
-                matchScore = Integer.parseInt(textField.getText());
-                System.out.println(matchScore);
-                matchInfo = "To win you must get: " + matchScore + " points.\n";
+                matchLength = Integer.parseInt(textField.getText());
+                matchInfo = "To win you must get: " + matchLength + " points.\n";
                 scoreBox.getChildren().remove(textField);
                 label.setText(matchInfo);
                 primaryWindow.setScene(BoardPanel.gameBoard);
@@ -123,24 +122,15 @@ class AnnounceGame {
         alert.setContentText("Please enter a match score before continuing");
         alert.show();
 
-        Thread newThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
-
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        alert.close();
-                    }
-                });
+        Thread newThread = new Thread(() -> {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
+
+            Platform.runLater(alert::close);
         });
         newThread.start();
     }
-
 }

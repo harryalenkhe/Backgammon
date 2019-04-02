@@ -1,7 +1,8 @@
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.paint.Color;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -51,36 +52,41 @@ class MatchFinish {
         promptPlayAgain.setTranslateY(200);
         promptPlayAgain.setTranslateX(190);
         promptPlayAgain.setEffect(effects.goldGlow);
-
         finishGroup.getChildren().addAll(finish, promptPlayAgain);
     }
 
     public void setButtons(Stage primaryWindow) {
-        Button startButton = new Button("YES");
-        startButton.setLayoutX(375);
-        startButton.setLayoutY(320);
-        startButton.setTextFill(Color.BLACK);
-        startButton.setMinSize(100, 40);
+        TextField playAgain = new TextField();
+        playAgain.setOnAction(e -> {
+            if(playAgain.getText().equalsIgnoreCase("yes")) {
+                AnnounceGame announceGame = new AnnounceGame(primaryWindow);
+                primaryWindow.setScene(announceGame.welcomeScene);
+                announceGame.welcomeGroup.getChildren().removeAll(announceGame.startButton, announceGame.quitButton);
+                announceGame.welcomeGroup.getChildren().add(announceGame.playerDetails);
+            } else if(playAgain.getText().equalsIgnoreCase("no")) {
+                System.exit(0);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Not a valid option");
+                alert.setHeaderText("Please enter yes or no");
+                alert.setContentText("Enter yes or no");
+                alert.show();
 
-        Button quitButton = new Button("NO");
-        quitButton.setLayoutX(575);
-        quitButton.setLayoutY(320);
-        quitButton.setTextFill(Color.BLACK);
-        quitButton.setMinSize(100, 40);
+                Thread newThread = new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
 
-        startButton.setOnMouseEntered(E -> startButton.setEffect(effects.goldGlow));
-        startButton.setOnMouseExited(E -> startButton.setEffect(effects.noGlow));
-        startButton.setOnAction(E -> {
-            AnnounceGame announceGame = new AnnounceGame(primaryWindow);
-            primaryWindow.setScene(announceGame.welcomeScene);
-            announceGame.welcomeGroup.getChildren().removeAll(announceGame.startButton, announceGame.quitButton);
-            announceGame.welcomeGroup.getChildren().add(announceGame.playerDetails);
+                    Platform.runLater(alert::close);
+                });
+                newThread.start();
+            }
         });
-
-        quitButton.setOnMouseEntered(E -> quitButton.setEffect(effects.goldGlow));
-        quitButton.setOnMouseExited(E -> quitButton.setEffect(effects.noGlow));
-        quitButton.setOnAction(E -> System.exit(0));
-        finishGroup.getChildren().addAll(startButton, quitButton);
+        playAgain.setLayoutX(425);
+        playAgain.setLayoutY(320);
+        finishGroup.getChildren().addAll(playAgain);
     }
 
 

@@ -15,9 +15,10 @@ class Player {
 	HBox BluePlayer;
 	private String p1Info;
 	private String p2Info;
+	private int blueMatchScore = 0;
+	private int redMatchScore = 0;
+
 	private Effects effects;
-	private int blueMatchScore=0;
-	private int redMatchScore=0;
 
 	Player() {
 		this.name = "";
@@ -96,12 +97,12 @@ class Player {
 		return this.turn;
 	}
 
-	void updateMatchScore(int winner, int gameScore){
-		if(winner == playerBlue.getTurn()){
-			blueMatchScore+=gameScore;
+	void updateMatchScore(int winner, int pointsWon){
+		if(winner == playerBlue.getTurn()) {
+			blueMatchScore += pointsWon;
 		}
-		else{
-			redMatchScore+=gameScore;
+		else {
+			redMatchScore += pointsWon;
 		}
 	}
 

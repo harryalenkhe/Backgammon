@@ -49,9 +49,9 @@ class BoardPanel {
     }
 
     static void setScoreBoard() {
-        Text currentScore= new Text("Current Match Score: ");
+        Text currentScore = new Text("Current Match Score: ");
         Text redScore = new Text( Integer.toString(Player.playerRed.getRedMatchScore()));
-        Text blueScore = new Text( Integer.toString(Player.playerRed.getRedMatchScore()));
+        Text blueScore = new Text( Integer.toString(Player.playerBlue.getBlueMatchScore()));
         Text dash = new Text("-");
         currentScore.setFill(Color.BLACK);
         redScore.setFill(Color.RED);
@@ -70,8 +70,10 @@ class BoardPanel {
         gameComponents.getChildren().add(scoreBoard);
     }
 
-    static void displayMatchScore() {
-        Text label1 = new Text("This match is being played to " + AnnounceGame.matchScore + " points");
+    static void displayMatchLength() {
+        System.out.println(AnnounceGame.matchLength);
+
+        Text label1 = new Text("This match is being played to " + AnnounceGame.matchLength + " points");
         label1.setFill(Color.BLACK);
         label1.setFont(Font.font(null, FontWeight.BOLD, 20));
 
