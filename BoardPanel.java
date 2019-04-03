@@ -24,8 +24,6 @@ class BoardPanel {
     static Image boardImage;
     private Dice dice;
     private UserInterface UI;
-    private static HBox scoreBox;
-    private static HBox scoreBoard;
     static final Coordinates[][] BOARD = new Coordinates[12][30];
     static final Coordinates[][] BEAR = new Coordinates[1][30];
     static final Coordinates[][] BAR = new Coordinates[1][10];
@@ -46,38 +44,35 @@ class BoardPanel {
         setGameView();
         setGameComponents();
         setGameBoard();
+        setScoreBoard();
+        displayMatchLength();
     }
 
-    static void setScoreBoard() {
-        Text currentScore = new Text("Current Match Score: ");
-        Text redScore = new Text( Integer.toString(Player.playerRed.getRedMatchScore()));
-        Text blueScore = new Text( Integer.toString(Player.playerBlue.getBlueMatchScore()));
+    private static void setScoreBoard() {
+        Text red = new Text( Integer.toString(Player.playerRed.getScore()));
+        Text blue = new Text( Integer.toString(Player.playerBlue.getScore()));
         Text dash = new Text("-");
-        currentScore.setFill(Color.BLACK);
-        redScore.setFill(Color.RED);
-        blueScore.setFill(Color.BLUE);
+        red.setFill(Color.RED);
+        blue.setFill(Color.BLUE);
         dash.setFill(Color.BLACK);
-        redScore.setFont(Font.font(null, FontWeight.BOLD, 26));
-        blueScore.setFont(Font.font(null, FontWeight.BOLD, 26));
+        red.setFont(Font.font(null, FontWeight.BOLD, 26));
+        blue.setFont(Font.font(null, FontWeight.BOLD, 26));
         dash.setFont(Font.font(null, FontWeight.BOLD, 26));
-        currentScore.setFont(Font.font(null, FontWeight.BOLD, 20));
 
-        scoreBoard = new HBox();
-        scoreBoard.getChildren().setAll(currentScore,redScore,dash,blueScore);
+        HBox scoreBoard = new HBox();
+        scoreBoard.getChildren().setAll(red, dash, blue);
         scoreBoard.setSpacing(5);
         scoreBoard.setLayoutY(25);
         scoreBoard.setLayoutX(700);
         gameComponents.getChildren().add(scoreBoard);
     }
 
-    static void displayMatchLength() {
-        System.out.println(AnnounceGame.matchLength);
-
+    private static void displayMatchLength() {
         Text label1 = new Text("This match is being played to " + AnnounceGame.matchLength + " points");
         label1.setFill(Color.BLACK);
         label1.setFont(Font.font(null, FontWeight.BOLD, 20));
 
-        scoreBox = new HBox();
+        HBox scoreBox = new HBox();
         scoreBox.getChildren().setAll(label1);
         scoreBox.setSpacing(5);
         scoreBox.setLayoutY(25);

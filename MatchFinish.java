@@ -3,6 +3,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -17,19 +18,18 @@ class MatchFinish {
     MatchFinish(Stage primaryWindow, int winner) {
         finishGroup = new Group();
         effects = new Effects();
-        setFinishText(winner);
-        setButtons(primaryWindow);
+        setFinish(winner, primaryWindow);
         setFinishScene();
     }
 
-    private void setFinishText(int winner) {
+    private void setFinish(int winner, Stage primaryWindow) {
         Text finish = new Text();
         if(winner == Player.playerRed.getTurn()) {
-            finish.setText(Player.playerRed.getName() + " is the winner!");
+            finish.setText(Player.playerRed.getName() + " won " + Player.playerRed.getScore() + " - " + Player.playerBlue.getScore());
         }
 
         if(winner == Player.playerBlue.getTurn()) {
-            finish.setText(Player.playerBlue.getName() + " is the winner!");
+            finish.setText(Player.playerBlue.getName() + " won " + Player.playerBlue.getScore() + " - " + Player.playerRed.getScore());
         }
 
         finish.setX(10.0f);
@@ -38,8 +38,6 @@ class MatchFinish {
         finish.setFill(effects.redToBlue);
         finish.setUnderline(true);
         finish.setFont(Font.font(null, FontWeight.BOLD, 80));
-        finish.setTranslateY(100);
-        finish.setTranslateX(150);
         finish.setEffect(effects.goldGlow);
 
         Text promptPlayAgain = new Text("Would you like to play again?");
@@ -49,13 +47,8 @@ class MatchFinish {
         promptPlayAgain.setFill(effects.redToBlue);
         promptPlayAgain.setUnderline(true);
         promptPlayAgain.setFont(Font.font(null, FontWeight.BOLD, 50));
-        promptPlayAgain.setTranslateY(200);
-        promptPlayAgain.setTranslateX(190);
         promptPlayAgain.setEffect(effects.goldGlow);
-        finishGroup.getChildren().addAll(finish, promptPlayAgain);
-    }
 
-    public void setButtons(Stage primaryWindow) {
         TextField playAgain = new TextField();
         playAgain.setOnAction(e -> {
             if(playAgain.getText().equalsIgnoreCase("yes")) {
@@ -84,11 +77,15 @@ class MatchFinish {
                 newThread.start();
             }
         });
-        playAgain.setLayoutX(425);
-        playAgain.setLayoutY(320);
-        finishGroup.getChildren().addAll(playAgain);
-    }
 
+
+        VBox vbox = new VBox();
+        vbox.setSpacing(20);
+        vbox.setLayoutX(150);
+        vbox.setLayoutY(100);
+        vbox.getChildren().addAll(finish, promptPlayAgain, playAgain);
+        finishGroup.getChildren().addAll(vbox);
+    }
 
     private void setFinishScene() {
         finishScene = new Scene(finishGroup, 1100, 600);

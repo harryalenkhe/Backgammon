@@ -16,7 +16,7 @@ class Dice extends Group {
     private static StackPane dice1;
     private static StackPane dice2;
     private static StackPane doublingCube;
-    static int currentOdds = 1;
+    private static int currentOdds;
 
     Dice() {
         setUpDice();
@@ -79,6 +79,7 @@ class Dice extends Group {
         doublingCube.getChildren().addAll(doubleCube, cubeNumber);
         doublingCube.setLayoutY(271);
         doublingCube.setLayoutX(35);
+        currentOdds = 1;
     }
 
     static void doubleOdds(int currentPlayer) {
@@ -129,11 +130,15 @@ class Dice extends Group {
         if(currentHolder == 0) {
            return true;
         } else {
-            if(currentHolder == currentPlayer) {
-                return true;
-            } else {
-                return false;
-            }
+            return currentHolder == currentPlayer;
         }
     }
-}
+
+    static int getCurrentOdds() {
+        return currentOdds;
+    }
+
+    static void setCurrentOdds(int odds) {
+        currentOdds = odds;
+    }
+ }

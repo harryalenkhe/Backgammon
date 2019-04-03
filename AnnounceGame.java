@@ -28,12 +28,11 @@ class AnnounceGame {
     AnnounceGame(Stage primaryWindow) {
         welcomeGroup = new Group();
         effects = new Effects();
-        new BoardPanel(primaryWindow);
         player = new Player();
         player.getDetails();
         setWelcomeText();
         setButtons();
-        setMatchScore(primaryWindow);
+        setMatchLength(primaryWindow);
         setPlayerDetails();
         setWelcomeScene();
     }
@@ -85,20 +84,20 @@ class AnnounceGame {
         playerDetails.setLayoutY(300);
     }
 
-    private void setMatchScore(Stage primaryWindow){
+    private void setMatchLength(Stage primaryWindow){
         Text label = new Text("How many points you are playing to:");
         label.setEffect(effects.goldGlow);
         label.setFill(Color.BLACK);
         label.setFont(Font.font(null, FontWeight.BOLD, 16));
 
         TextField textField = new TextField();
-        textField.setPromptText("Enter number of points.");
         textField.setOnAction(E -> {
             if ((textField.getText() != null && !textField.getText().isEmpty())) {
                 matchLength = Integer.parseInt(textField.getText());
                 matchInfo = "To win you must get: " + matchLength + " points.\n";
                 scoreBox.getChildren().remove(textField);
                 label.setText(matchInfo);
+                new BoardPanel(primaryWindow);
                 primaryWindow.setScene(BoardPanel.gameBoard);
             } else {
                 getAlert();

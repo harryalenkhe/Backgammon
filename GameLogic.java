@@ -92,7 +92,7 @@ class GameLogic {
             moveTo[index][0] = startPip; // store starting pip
 
 
-            if (canBearOff(ownerCheckers, currentPlayer)) {
+            if (canBearOff(currentPlayer)) {
                 if(diceUsed == 0 || diceUsed == 2) {
                     if (isBearOffMove(singleToPip1)) { // Is a bear-off move
                         UserInterface.LEGAL_MOVES.add(letter++ + ": " + moveTo[index][0] + " - Off");
@@ -550,14 +550,10 @@ class GameLogic {
 
     static int getWinner() { // Check if last position in Bear Off is taken
         if(BoardPanel.BEAR[0][29].isTaken()) { // If last position for reds Bear off is taken then red wins
-            Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), UserInterface.pointsWon);
-            // PLAYER RED WINS
             return Player.playerRed.getTurn();
         }
 
         if(BoardPanel.BEAR[0][14].isTaken()) { // If last position for blues Bear off is taken then blue wins
-            Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), UserInterface.pointsWon);
-            // PLAYER BLUE WINS
             return Player.playerBlue.getTurn();
         }
         return 0;
@@ -629,7 +625,8 @@ class GameLogic {
         return (pip <= 0);
     }
 
-    private static boolean canBearOff(ArrayList<Integer> ownCheckersArrayList, int currentPlayer) {
+    private static boolean canBearOff(int currentPlayer) {
+        ArrayList<Integer> ownCheckersArrayList;
         if (currentPlayer == Player.playerRed.getTurn()) { // If red players turn
             ownCheckersArrayList = findOwnCheckers(Player.playerRed.getTurn());
             for (int pip : ownCheckersArrayList) {
@@ -649,5 +646,9 @@ class GameLogic {
             }
             return true;
         }
+    }
+
+    static int getPointsWon() {
+        return Dice.getCurrentOdds();
     }
 }

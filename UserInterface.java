@@ -27,7 +27,6 @@ class UserInterface extends VBox {
     private int currentPlayer;
     static int currentHolder = 0;
     static boolean doubleRolled = false;
-    static int pointsWon = Dice.currentOdds;
 
     UserInterface(Stage primaryWindow) {
         setBoardImageFlipped();
@@ -108,8 +107,6 @@ class UserInterface extends VBox {
 
             if (textField.getText().equalsIgnoreCase("start")) {
                 startCommand();
-                BoardPanel.displayMatchLength();
-                BoardPanel.setScoreBoard();
                 if(LEGAL_MOVES.size() == 1) {
                     getForcedPlayAlert();
                 }
@@ -370,46 +367,51 @@ class UserInterface extends VBox {
 
     private void announceGameWinner(Stage primaryWindow, String acceptDouble) {
         if (GameLogic.getWinner() == Player.playerBlue.getTurn()) { // After player wins a game
-            Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), pointsWon);
-            if(Player.playerBlue.getBlueMatchScore() >= AnnounceGame.matchLength) {
+            Player.playerBlue.setScore(GameLogic.getPointsWon());
+            System.out.println("Points won " + GameLogic.getPointsWon());
+
+            if(Player.playerBlue.getScore() >= AnnounceGame.matchLength) {
                 MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
                 primaryWindow.setScene(matchFinish.finishScene); // Show winner
             } else {
-                BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                new BoardPanel(primaryWindow);
                 primaryWindow.setScene(BoardPanel.gameBoard);
             }
         }
 
         if (GameLogic.getWinner() == Player.playerRed.getTurn()) {
-            Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), pointsWon);
-            if(Player.playerRed.getRedMatchScore() >= AnnounceGame.matchLength) {
+            Player.playerRed.setScore(GameLogic.getPointsWon());
+            System.out.println("Points won " + GameLogic.getPointsWon());
+
+            if(Player.playerRed.getScore() >= AnnounceGame.matchLength) {
                 MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
                 primaryWindow.setScene(matchFinish.finishScene); // Show winner
             } else {
-                BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                new BoardPanel(primaryWindow);
                 primaryWindow.setScene(BoardPanel.gameBoard);
             }
         }
 
         if (acceptDouble.equalsIgnoreCase("No")) {
             if(currentPlayer == Player.playerRed.getTurn()) {
-                Player.playerRed.updateMatchScore(Player.playerRed.getTurn(), pointsWon);
-                if(Player.playerRed.getRedMatchScore() >= AnnounceGame.matchLength) {
+                Player.playerRed.setScore(GameLogic.getPointsWon());
+                System.out.println("Points won " + GameLogic.getPointsWon());
+                if(Player.playerRed.getScore() >= AnnounceGame.matchLength) {
                     MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
                     primaryWindow.setScene(matchFinish.finishScene); // Show winner
                 } else {
-                    BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                    new BoardPanel(primaryWindow);
                     primaryWindow.setScene(BoardPanel.gameBoard);
                 }
             }
-
             else {
-                Player.playerBlue.updateMatchScore(Player.playerBlue.getTurn(), pointsWon);
-                if(Player.playerBlue.getBlueMatchScore() >= AnnounceGame.matchLength) {
+                Player.playerBlue.setScore(GameLogic.getPointsWon());
+                System.out.println("Points won " + GameLogic.getPointsWon());
+                if(Player.playerBlue.getScore() >= AnnounceGame.matchLength) {
                     MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
                     primaryWindow.setScene(matchFinish.finishScene); // Show winner
                 } else {
-                    BoardPanel boardPanel = new BoardPanel(primaryWindow);
+                    new BoardPanel(primaryWindow);
                     primaryWindow.setScene(BoardPanel.gameBoard);
                 }
             }

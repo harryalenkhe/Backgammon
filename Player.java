@@ -9,14 +9,13 @@ class Player {
 	private String name;
 	private String colour;
 	private int turn;
+	private int score;
 	static Player playerRed;
 	static Player playerBlue;
 	HBox RedPlayer;
 	HBox BluePlayer;
 	private String p1Info;
 	private String p2Info;
-	private int blueMatchScore = 0;
-	private int redMatchScore = 0;
 
 	private Effects effects;
 
@@ -24,6 +23,7 @@ class Player {
 		this.name = "";
 		this.colour = "";
 		this.turn = 0;
+		this.score = 0;
 		effects = new Effects();
 	}
 
@@ -31,6 +31,7 @@ class Player {
 		this.name = name;
 		this.colour = colour;
 		this.turn = t;
+		this.score = 0;
 	}
 
 	String getName() {
@@ -89,26 +90,21 @@ class Player {
 		BluePlayer.setSpacing(5);
 	}
 
-	void setTurn(int t) {
-		this.turn = t;
-	}
-
 	int getTurn() {
 		return this.turn;
 	}
 
-	void updateMatchScore(int winner, int pointsWon){
-		if(winner == playerBlue.getTurn()) {
-			blueMatchScore += pointsWon;
-		}
-		else {
-			redMatchScore += pointsWon;
-		}
+	void setTurn(int t) {
+		this.turn = t;
 	}
 
-	int getBlueMatchScore(){ return blueMatchScore; }
+	void setScore(int pointsWon) {
+		this.score += pointsWon;
+	}
 
-	int getRedMatchScore(){ return redMatchScore; }
+	int getScore() {
+		return score;
+	}
 
 	private void getAlert() {
 		Alert alert = new Alert(Alert.AlertType.WARNING);
