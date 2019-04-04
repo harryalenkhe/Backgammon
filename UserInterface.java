@@ -121,6 +121,22 @@ class UserInterface extends VBox {
                 System.exit(0);
             }
 
+            if (textField.getText().equalsIgnoreCase("gammon")) {
+                textField.setText(""); textArea.setText("");
+                gammonCommand();
+                ownerCheckers = GameLogic.findOwnCheckers(currentPlayer);
+                GameLogic.findMoveTo(ownerCheckers, currentPlayer, moveCountTotal, 0); // Display moves for next dice roll;
+
+                if(LEGAL_MOVES.size() == 1) {
+                    getForcedPlayAlert();
+                }
+
+                if(LEGAL_MOVES.isEmpty()) {
+                    getNoMovesAlert();
+                    nextCommand();
+                }
+            }
+
             if (moveOption.length() == 1 && moveOption.matches("\\w")) {
                 char option = moveOption.charAt(0);
 
@@ -312,6 +328,74 @@ class UserInterface extends VBox {
         }
     }
 
+    private void gammonCommand() {
+        // Release all coordinates on board, bar and bear-off
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 30; j++) {
+                BoardPanel.BOARD[i][j].releaseCoordinate();
+            }
+        }
+
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < 30; j++) {
+                BoardPanel.BEAR[i][j].releaseCoordinate();
+            }
+        }
+
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < 10; j++) {
+                BoardPanel.BAR[i][j].releaseCoordinate();
+            }
+        }
+
+        int numReds = 0;
+        int numBlues = 0;
+        int currentPip = 1;
+        int column = GameLogic.convertPipToColumn(currentPip);
+        int row;
+
+        for (int numCheckersInPip = 0; numCheckersInPip < 2; numCheckersInPip++) // Counts the checkers
+        {
+            row = GameLogic.nextRow(column, currentPip, 0);
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, currentPip);
+            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
+            numReds++;
+        }
+
+        currentPip = 24;
+        column = GameLogic.convertPipToColumn(currentPip);
+        row = GameLogic.nextRow(column, currentPip, 0);
+        Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
+        BoardPanel.BOARD[column][row].occupyCoordinate('B'); // Position now occupied
+        numBlues++;
+
+
+        currentPip = 3;
+        column = GameLogic.convertPipToColumn(currentPip);
+        row = GameLogic.nextRow(column, currentPip, 0);
+        Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, currentPip);
+        BoardPanel.BOARD[column][row].occupyCoordinate('B'); // Position now occupied
+        numBlues++;
+
+        column = 0; // BEAR BLUE
+        row = 0;
+        for (int numCheckersInPip = 0; numCheckersInPip < 13; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.blueCheckers[numBlues].getCircle(), column, row, 0);
+            BoardPanel.BEAR[column][row].occupyCoordinate('B');
+            numBlues++;
+            row++;
+        }
+
+        column = 0; // BEAR RED
+        row = 15;
+        for (int numCheckersInPip = 0; numCheckersInPip < 13; numCheckersInPip++) {
+            Checkers.moveCircle(BoardPanel.redCheckers[numReds].getCircle(), column, row, 0);
+            BoardPanel.BEAR[column][row].occupyCoordinate('R');
+            numReds++;
+            row++;
+        }
+    }
+
     private int moveCommand(char option) {
         int diceUsed;
         textField.setText("");
@@ -367,8 +451,7 @@ class UserInterface extends VBox {
 
     private void announceGameWinner(Stage primaryWindow, String acceptDouble) {
         if (GameLogic.getWinner() == Player.playerBlue.getTurn()) { // After player wins a game
-            Player.playerBlue.setScore(GameLogic.getPointsWon());
-            System.out.println("Points won " + GameLogic.getPointsWon());
+            Player.playerBlue.setScore(GameLogic.getPointsWon(currentPlayer, false));
 
             if(Player.playerBlue.getScore() >= AnnounceGame.matchLength) {
                 MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
@@ -380,8 +463,7 @@ class UserInterface extends VBox {
         }
 
         if (GameLogic.getWinner() == Player.playerRed.getTurn()) {
-            Player.playerRed.setScore(GameLogic.getPointsWon());
-            System.out.println("Points won " + GameLogic.getPointsWon());
+            Player.playerRed.setScore(GameLogic.getPointsWon(currentPlayer, false));
 
             if(Player.playerRed.getScore() >= AnnounceGame.matchLength) {
                 MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
@@ -394,8 +476,7 @@ class UserInterface extends VBox {
 
         if (acceptDouble.equalsIgnoreCase("No")) {
             if(currentPlayer == Player.playerRed.getTurn()) {
-                Player.playerRed.setScore(GameLogic.getPointsWon());
-                System.out.println("Points won " + GameLogic.getPointsWon());
+                Player.playerRed.setScore(GameLogic.getPointsWon(currentPlayer, true));
                 if(Player.playerRed.getScore() >= AnnounceGame.matchLength) {
                     MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerRed.getTurn());
                     primaryWindow.setScene(matchFinish.finishScene); // Show winner
@@ -405,8 +486,8 @@ class UserInterface extends VBox {
                 }
             }
             else {
-                Player.playerBlue.setScore(GameLogic.getPointsWon());
-                System.out.println("Points won " + GameLogic.getPointsWon());
+                Player.playerBlue.setScore(GameLogic.getPointsWon(currentPlayer, true));
+
                 if(Player.playerBlue.getScore() >= AnnounceGame.matchLength) {
                     MatchFinish matchFinish = new MatchFinish(primaryWindow, Player.playerBlue.getTurn());
                     primaryWindow.setScene(matchFinish.finishScene); // Show winner

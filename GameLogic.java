@@ -17,10 +17,16 @@ class GameLogic {
                 checkerX = BoardPanel.redCheckers[index].getCircleX();
                 checkerY = BoardPanel.redCheckers[index].getCircleY();
 
-                if(checkerX == 325.775) { // If on the bar
+                if(checkerX == 592.575) {
+                    ownCheckersSet.add(0);
+                }
+
+                else if(checkerX == 325.775) { // If on the bar
                     pip = 25;
                     ownCheckersSet.add(pip);
-                } else {
+                }
+
+                else {
                     column = (int) (((checkerX - 109)/33.35) + 0.5d); // Get column from X coordinate
                     if(column > 5) { // To make up for skipping the bar
                         column -= 2;
@@ -44,10 +50,16 @@ class GameLogic {
                 checkerX = BoardPanel.blueCheckers[index].getCircleX();
                 checkerY = BoardPanel.blueCheckers[index].getCircleY();
 
-                if(checkerX == 325.775) { // If checker on bar
+                if(checkerX == 592.575) {
+                    ownCheckersSet.add(0);
+                }
+
+                else if(checkerX == 325.775) { // If checker on bar
                     pip = 25;
                     ownCheckersSet.add(pip);
-                } else { // If checker on board
+                }
+
+                else { // If checker on board
                     column = (int) (((checkerX - 109) / 33.35) + 0.5d);
                     if(column > 5) {
                         column -= 2;
@@ -426,7 +438,7 @@ class GameLogic {
     static int convertPipToColumn(int pip) {
         int column;
 
-        if(pip == 0 || pip == 25) { // BAR OR BEAR
+        if(pip == 0 || pip == 25 || pip == 26) { // BAR OR BEAR
             column = 0;
         }
 
@@ -648,7 +660,49 @@ class GameLogic {
         }
     }
 
-    static int getPointsWon() {
-        return Dice.getCurrentOdds();
+    private static int typeOfWin(int currentPlayer) {
+        int pointsWon = 0;
+
+        ArrayList<Integer> opponentsCheckers;
+        if (currentPlayer == Player.playerRed.getTurn()) { // If red players turn
+            opponentsCheckers = findOwnCheckers(Player.playerBlue.getTurn()); // Stores pip numbers of all checkers
+            if (opponentsCheckers.contains(26) || opponentsCheckers.contains(0)) { // AtLeast one checker bore off
+                pointsWon = 1;
+            } else { // No checkers bore off
+                for(int pip : opponentsCheckers) {
+                    System.out.println(pip);
+                    if(pip <= 18) { // In homeBoard or outerBoard
+                        pointsWon = 2;
+                    } else { // In your homeBoard
+                        pointsWon = 3;
+                    }
+                }
+            }
+        }
+
+        else if (currentPlayer == Player.playerBlue.getTurn()) {
+            opponentsCheckers = findOwnCheckers(Player.playerRed.getTurn()); // Stores pip numbers of all checkers
+            if (opponentsCheckers.contains(26) || opponentsCheckers.contains(0)) { // AtLeast one checker bore off
+                pointsWon = 1;
+            } else { // No checkers bore off
+                for(int pip : opponentsCheckers) {
+                    System.out.println(pip);
+                    if(pip <= 18) { // In homeBoard or outerBoard
+                        pointsWon = 2;
+                    } else { // In your homeBoard
+                        pointsWon = 3;
+                    }
+                }
+            }
+        }
+        return pointsWon;
+    }
+
+    static int getPointsWon(int currentPlayer, boolean forfeit) {
+        if(forfeit) {
+            return Dice.getCurrentOdds();
+        } else {
+            return Dice.getCurrentOdds() * typeOfWin(currentPlayer);
+        }
     }
 }
