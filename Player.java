@@ -1,135 +1,64 @@
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.*;
+import java.awt.*;
 
-class Player {
-	private String name;
-	private String colour;
-	private int turn;
-	private int score;
-	static Player playerRed;
-	static Player playerBlue;
-	HBox RedPlayer;
-	HBox BluePlayer;
-	private String p1Info;
-	private String p2Info;
+public class Player implements PlayerAPI {
+    // Player holds the details for one player
 
-	private Effects effects;
+    private int id;
+    private String colorName;
+    private Color color;
+    private String name;
+    private Dice dice;
+    private int score;
 
-	Player() {
-		this.name = "";
-		this.colour = "";
-		this.turn = 0;
-		this.score = 0;
-		effects = new Effects();
-	}
+    Player(int id, String colorName, Color color) {
+        this.id = id;
+        name = "";
+        this.colorName = colorName;
+        this.color = color;
+        dice = new Dice();
+        score = 0;
+    }
 
-	private Player(String name, String colour, int t) {
-		this.name = name;
-		this.colour = colour;
-		this.turn = t;
-		this.score = 0;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	String getName() {
-		return this.name;
-	}
+    @Override
+    public int getId() {
+        return id;
+    }
 
-	String getColour() {
-		return this.colour;
-	}
+    @Override
+    public String getColorName() {
+        return this.colorName;
+    }
 
-	void getDetails() {
-		effects = new Effects();
+    @Override
+    public Color getColor() {
+        return this.color;
+    }
 
-		Text label1 = new Text("Enter Player's Name:");
-		label1.setEffect(effects.goldGlow);
-		label1.setFill(Color.RED);
-		label1.setUnderline(true);
-		label1.setFont(Font.font(null, FontWeight.BOLD, 25));
-		TextField textField1 = new TextField();
-		textField1.setPromptText("Enter your name.");
-		textField1.setOnAction(E -> {
-			if ((textField1.getText() != null && !textField1.getText().isEmpty())) {
-				playerRed = new Player(textField1.getText(), "Red", 0);
-				p1Info = playerRed.getName() + " = " + playerRed.getColour() + "\n";
-				RedPlayer.getChildren().remove(textField1);
-				label1.setText(p1Info);
-			} else {
-				getAlert();
-			}
-		});
+    public Dice getDice() { return dice; }
 
-		Text label2 = new Text("Enter Player's Name:");
-		label2.setEffect(effects.goldGlow);
-		label2.setFill(Color.BLUE);
-		label2.setUnderline(true);
-		label2.setFont(Font.font(null, FontWeight.BOLD, 25));
-		TextField textField2 = new TextField();
-		textField2.setPromptText("Enter your name.");
-		textField2.setOnAction(E -> {
-			if ((textField2.getText() != null && !textField2.getText().isEmpty())) {
-				playerBlue = new Player(textField2.getText(), "Blue", 0);
-				p2Info = playerBlue.getName() + " = " + playerBlue.getColour() + "\n";
-				BluePlayer.getChildren().remove(textField2);
-				label2.setText(p2Info);
-			} else {
-				getAlert();
-			}
-		});
+    public String toString() {
+        return name;
+    }
 
-		RedPlayer = new HBox();
-		RedPlayer.getChildren().setAll(label1, textField1);
-		RedPlayer.setSpacing(5);
+    public void addPoints(int points) {
+        score = score + points;
+    }
 
-		BluePlayer = new HBox();
-		BluePlayer.getChildren().setAll(label2, textField2);
-		BluePlayer.setSpacing(5);
-	}
+    @Override
+    public int getScore() {
+        return score;
+    }
 
-	int getTurn() {
-		return this.turn;
-	}
+    public boolean equals(Player player) {
+        return this.id == player.id;
+    }
 
-	void setTurn(int t) {
-		this.turn = t;
-	}
-
-	void setScore(int pointsWon) {
-		this.score += pointsWon;
-	}
-
-	int getScore() {
-		return score;
-	}
-
-	private void getAlert() {
-		Alert alert = new Alert(Alert.AlertType.WARNING);
-		alert.setTitle("No name entered");
-		alert.setHeaderText("NO NAME ENTERED FOR PLAYER");
-		alert.setContentText("Please enter a name before continuing");
-		alert.show();
-
-		Thread newThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException ex) {
-					Thread.currentThread().interrupt();
-				}
-
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						alert.close();
-					}
-				});
-			}
-		});
-		newThread.start();
-	}
+    public void reset() {
+        name = "";
+        score = 0;
+    }
 }

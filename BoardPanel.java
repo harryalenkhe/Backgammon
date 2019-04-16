@@ -1,273 +1,169 @@
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.scene.layout.HBox;
-
 import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.stream.IntStream;
 
-class BoardPanel {
-    private BufferedImage emptyBoardImage;
-    static Scene gameBoard;
-    private static Group gameComponents;
-    static ImageView gameView;
-    static Image boardImage;
-    private Dice dice;
-    private UserInterface UI;
-    static final Coordinates[][] BOARD = new Coordinates[12][30];
-    static final Coordinates[][] BEAR = new Coordinates[1][30];
-    static final Coordinates[][] BAR = new Coordinates[1][10];
-    static Checkers[] redCheckers = new Checkers[15];
-    static Checkers[] blueCheckers = new Checkers[15];
-    private Effects effects = new Effects();
-    private final int RADIUS = 15;
+class   BoardPanel extends JPanel {
 
-    BoardPanel(Stage primaryWindow) {
-        gameComponents = new Group();
-        dice = new Dice();
-        UI = new UserInterface(primaryWindow);
-        setBoardImage();
-        setupBoard();
-        setupBear();
-        setupBar();
-        setupCheckers();
-        setGameView();
-        setGameComponents();
-        setGameBoard();
-        setScoreBoard();
-        displayMatchLength();
-    }
+    private static final long serialVersionUID = 1L;
+    private static final int FRAME_WIDTH = 752, FRAME_HEIGHT = 552;  // must be multiples of 4
+    private static final int BORDER_TOP = 40, BORDER_BOTTOM = 75, BORDER_LEFT = 66, BORDER_RIGHT = 60;
+    private static final int PIP_WIDTH = 47, BAR_WIDTH = 66;
+    private static final int CHECKER_RADIUS = 16, CHECKER_DEPTH = 8, LINE_WIDTH = 2;   // must be even
+    private static final int CUBE_HEIGHT = 40, CUBE_WIDTH=40;
 
-    private static void setScoreBoard() {
-        Text red = new Text( Integer.toString(Player.playerRed.getScore()));
-        Text blue = new Text( Integer.toString(Player.playerBlue.getScore()));
-        Text dash = new Text("-");
-        red.setFill(Color.RED);
-        blue.setFill(Color.BLUE);
-        dash.setFill(Color.BLACK);
-        red.setFont(Font.font(null, FontWeight.BOLD, 26));
-        blue.setFont(Font.font(null, FontWeight.BOLD, 26));
-        dash.setFont(Font.font(null, FontWeight.BOLD, 26));
+    private Color[] checkerColors;
+    private Board board;
+    private Players players;
+    private BufferedImage boardImage;
+    private Graphics2D g2;
+    private Cube cube;
+    private Match match;
 
-        HBox scoreBoard = new HBox();
-        scoreBoard.getChildren().setAll(red, dash, blue);
-        scoreBoard.setSpacing(5);
-        scoreBoard.setLayoutY(25);
-        scoreBoard.setLayoutX(700);
-        gameComponents.getChildren().add(scoreBoard);
-    }
-
-    private static void displayMatchLength() {
-        Text label1 = new Text("This match is being played to " + AnnounceGame.matchLength + " points");
-        label1.setFill(Color.BLACK);
-        label1.setFont(Font.font(null, FontWeight.BOLD, 20));
-
-        HBox scoreBox = new HBox();
-        scoreBox.getChildren().setAll(label1);
-        scoreBox.setSpacing(5);
-        scoreBox.setLayoutY(25);
-        scoreBox.setLayoutX(30);
-        gameComponents.getChildren().add(scoreBox);
-    }
-
-    private void setGameComponents() {
-        gameComponents.getChildren().addAll(gameView, UI, dice);
-        // Add checkers to board
-        IntStream.range(0, 15).forEach(i -> gameComponents.getChildren().addAll(redCheckers[i].getCircle(), blueCheckers[i].getCircle()));
-    }
-
-    private void setGameBoard() {
-        gameBoard = new Scene(gameComponents, 1060, 600);
-        gameBoard.setFill(Color.DARKRED);
-    }
-
-    private void setGameView() {
-        gameView = new ImageView(boardImage);
-        gameView.setX(25);
-        gameView.setY(60);
-        gameView.setFitHeight(600);
-        gameView.setFitWidth(600);
-        gameView.setPreserveRatio(true);
-    }
-
-    private void setBoardImage() {
+    BoardPanel(Board board, Players players, Cube cube, Match match) {
+        this.board = board;
+        this.players = players;
+        this.cube = cube;
+        this.match = match;
+        checkerColors = new Color[Players.NUM_PLAYERS];
+        checkerColors[0] = players.get(0).getColor();
+        checkerColors[1] = players.get(1).getColor();
+        setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
+        setBackground(Color.YELLOW);
         try {
-            emptyBoardImage = ImageIO.read(this.getClass().getResource("/images/empty_board.jpg"));
+            boardImage = ImageIO.read(this.getClass().getResource("board.jpg"));
         } catch (IOException ex) {
-            System.out.println("Image not showing / not found " + ex.toString());
-        }
-        boardImage = SwingFXUtils.toFXImage(emptyBoardImage, null);
-    }
-
-    private void setupBear() {
-        int col = 0;
-        final double bearX = 592.575;
-        double bearY = 91;
-        double BEAR_OFFSET = 11.867;
-
-        for(int row = 0; row < 30; row++) {
-            if(row == 15) {
-                bearY = 317;
-            }
-            BEAR[col][row] = new Coordinates(bearX, bearY, 'E');
-            bearY += BEAR_OFFSET;
+            System.out.println("Could not find the image file " + ex.toString());
         }
     }
 
-    private void setupBar() {
-        int col = 0;
-        final double barX = 325.775;
-        double barY = 121;
-        double BAR_OFFSET = 30;
-
-        for(int row = 0; row < 10; row++) {
-            BAR[col][row] = new Coordinates(barX, barY, 'E');
-            barY += BAR_OFFSET;
-        }
+    private void displayChecker(int player, int x, int y) {
+        g2.setColor(Color.BLACK);
+        Ellipse2D.Double ellipseBlack = new Ellipse2D.Double(x,y,2*CHECKER_RADIUS,2*CHECKER_RADIUS);
+        g2.fill(ellipseBlack);
+        Ellipse2D.Double ellipseColour = new Ellipse2D.Double(x+LINE_WIDTH,y+LINE_WIDTH,2*(CHECKER_RADIUS-LINE_WIDTH),2*(CHECKER_RADIUS-LINE_WIDTH));
+        g2.setColor(checkerColors[player]);
+        g2.fill(ellipseColour);
     }
 
-    private void setupBoard() {
-        double currentColumn= 109;
-        double currentRow = 91;
-        final double VERTICAL_OFFSET = 10;
-        final double HORIZONTAL_OFFSET = 33.35;
+    private void displayCheckerSide(int player, int x, int y) {
+        g2.setColor(Color.BLACK);
+        Rectangle2D.Double rectangleBlack = new Rectangle2D.Double(x,y,2*CHECKER_RADIUS,CHECKER_DEPTH);
+        g2.fill(rectangleBlack);
+        Rectangle2D.Double rectangleColour = new Rectangle2D.Double(x+LINE_WIDTH,y+LINE_WIDTH,2*(CHECKER_RADIUS-LINE_WIDTH),CHECKER_DEPTH-2*LINE_WIDTH);
+        g2.setColor(checkerColors[player]);
+        g2.fill(rectangleColour);
+    }
 
-        for(int col = 0; col < 12; col++) {
-            if (col == 6) { // Skip the bar and go to next pip
-                currentColumn = 375.8;
-            }
+    private void displayCube() {
+        int x = 3,y;
+        if (!cube.isOwned()) {
+            y = FRAME_HEIGHT/2-15;
+        } else if (cube.getOwner().getId()==0) {
+            y = 3*(FRAME_HEIGHT)/4-10;
+        } else {
+            y = FRAME_HEIGHT/4-15;
+        }
+        Rectangle2D.Double rectangleBlack = new Rectangle2D.Double(x,y,CUBE_HEIGHT,CUBE_WIDTH);
+        g2.setColor(Color.WHITE);
+        g2.fill(rectangleBlack);
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font("Courier",Font.BOLD,32));
+        g2.drawString("" + cube, x+2, y+32);
+    }
 
-            for(int row = 0; row < 30; row++) {
-                if (row == 15) {
-                    currentRow = 341; // Jump to top of bottom pip and leave gap between top and bottom pips
+    private void displayScore() {
+        g2.setFont(new Font("Courier",Font.BOLD,32));
+        g2.setColor(players.get(0).getColor());
+        g2.drawString("" + players.get(0).getScore(), FRAME_WIDTH/4, FRAME_HEIGHT/2+10);
+        g2.setColor(players.get(1).getColor());
+        g2.drawString("" + players.get(1).getScore(), 3*FRAME_WIDTH/4, FRAME_HEIGHT/2+10);
+        g2.setColor(Color.WHITE);
+        g2.drawString("" + match.getLength(), FRAME_WIDTH-40, FRAME_HEIGHT/2+10);
+    }
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g2 =(Graphics2D) g;
+        g2.drawImage(boardImage, 0, 0, FRAME_WIDTH, FRAME_HEIGHT, this);
+        for (int player = 0; player< Backgammon.NUM_PLAYERS; player++) {
+            int x,y;
+            // Display Pip Numbers
+            for (int pip = 1; pip<= Board.NUM_PIPS; pip++) {
+                if (pip>3* Board.NUM_PIPS/4) {
+                    x = FRAME_WIDTH/2 + BAR_WIDTH/2 + (pip-3* Board.NUM_PIPS/4-1)*PIP_WIDTH+PIP_WIDTH/4;
+                } else if (pip> Board.NUM_PIPS/2) {
+                    x = BORDER_LEFT + (pip- Board.NUM_PIPS/2-1)*PIP_WIDTH+PIP_WIDTH/4;
+                } else if (pip> Board.NUM_PIPS/4) {
+                    x = BORDER_LEFT + (Board.NUM_PIPS/2-pip)*PIP_WIDTH+PIP_WIDTH/4;
+                } else {
+                    x = FRAME_WIDTH/2 + BAR_WIDTH/2 + (Board.NUM_PIPS/4-pip)*PIP_WIDTH+PIP_WIDTH/4;
                 }
-
-                BOARD[col][row] = new Coordinates(currentColumn, currentRow, 'E');
-                currentRow += VERTICAL_OFFSET;
+                if (pip> Board.NUM_PIPS/2) {
+                    y = 3*BORDER_TOP/4;
+                } else {
+                    y = FRAME_HEIGHT-BORDER_BOTTOM/4;
+                }
+                g2.setColor(players.getCurrent().getColor());
+                g2.setFont(new Font("Courier",Font.BOLD,16));
+                if (players.getCurrent().getId()==0) {
+                    g2.drawString(Integer.toString(pip), x, y);
+                } else {
+                    g2.drawString(Integer.toString(Board.NUM_PIPS-pip+1), x, y);
+                }
             }
-            currentRow = 91;
-            currentColumn += HORIZONTAL_OFFSET;
-        }
-    }
-
-    private void setupCheckers() {
-        createRedCheckers();
-        createBlueCheckers();
-    }
-
-    private void createRedCheckers() {
-        int numReds = 0;
-        int currentPip;
-        int column;
-        int row;
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 15; numCheckersInPip++) {
-            if(numCheckersInPip < 5) {
-                currentPip = 13;
-                column = GameLogic.convertPipToColumn(currentPip);
+            // Display Bar
+            for (int count = 1; count<=board.getNumCheckers(player, Board.BAR); count++) {
+                x = FRAME_WIDTH/2-CHECKER_RADIUS;
+                if (player==0) {
+                    y = FRAME_HEIGHT/4+(count-1)*CHECKER_RADIUS;
+                } else {
+                    y = 3*FRAME_HEIGHT/4-(count-1)*CHECKER_RADIUS;
+                }
+                displayChecker(player,x,y);
             }
-            else if(numCheckersInPip < 7) {
-                currentPip = 24;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            else if(numCheckersInPip < 10) {
-                currentPip = 8;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            else {
-                currentPip = 6;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle red = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS); // Circle with coordinates
-            BoardPanel.BOARD[column][row].occupyCoordinate('R'); // Position now occupied
-            red.setStroke(Color.BLACK);
-            red.setFill(effects.checkerRed);
-            redCheckers[numReds++] = new Checkers(red);
-        }
-    }
-
-    private void createBlueCheckers() {
-        int numBlues = 0;
-        int currentPip;
-        int column;
-        int row;
-
-        for(int numCheckersInPip = 0; numCheckersInPip < 15; numCheckersInPip++) {
-            if(numCheckersInPip < 3) {
-                currentPip = 17;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            else if(numCheckersInPip < 8) {
-                currentPip = 19;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            else if(numCheckersInPip < 13) {
-                currentPip = 12;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            else {
-                currentPip = 1;
-                column = GameLogic.convertPipToColumn(currentPip);
-            }
-            row = GameLogic.nextRow(column, currentPip, 0);
-            Circle blue = new Circle(BoardPanel.BOARD[column][row].getX(), BoardPanel.BOARD[column][row].getY(), RADIUS);
-            BoardPanel.BOARD[column][row].occupyCoordinate('B');
-            blue.setStroke(Color.BLACK);
-            blue.setFill(effects.checkerBlue);
-            blueCheckers[numBlues++] = new Checkers(blue);
-        }
-    }
-
-    static Circle checkerAtStartingPip(int column, int row, int currentPlayer, int pip) {
-        Circle toBeMoved = null;
-
-        if(currentPlayer == Player.playerRed.getTurn()) {
-            for (int i = 0; i < 15; i++) {
-                if(pip == 25) { // Moving from bar
-                    if (redCheckers[i].getCircleX() == BAR[0][row].getX() && redCheckers[i].getCircleY() == BAR[0][row].getY()) {
-                        toBeMoved = redCheckers[i].getCircle();
-                        break;
+            // Display Main Board
+            for (int pip = 1; pip<= Board.NUM_PIPS; pip++) {
+                for (int count=1; count<=board.getNumCheckers(player,pip); count++) {
+                    if (pip>3* Board.NUM_PIPS/4) {
+                        x = FRAME_WIDTH/2 + BAR_WIDTH/2 + (pip-3* Board.NUM_PIPS/4-1)*PIP_WIDTH;
+                    } else if (pip> Board.NUM_PIPS/2) {
+                        x = BORDER_LEFT + (pip- Board.NUM_PIPS/2-1)*PIP_WIDTH;
+                    } else if (pip> Board.NUM_PIPS/4) {
+                        x = BORDER_LEFT + (Board.NUM_PIPS/2-pip)*PIP_WIDTH;
+                    } else {
+                        x = FRAME_WIDTH/2 + BAR_WIDTH/2 + (Board.NUM_PIPS/4-pip)*PIP_WIDTH;
                     }
-                }
-
-                else {
-                    if (redCheckers[i].getCircleX() == BOARD[column][row].getX() && redCheckers[i].getCircleY() == BOARD[column][row].getY()) {
-                        toBeMoved = redCheckers[i].getCircle();
-                        break;
+                    if ( (player==0 && pip> Board.NUM_PIPS/2) || (player==1 && pip< Board.NUM_PIPS/2) ){
+                        y = BORDER_TOP + (count-1)*2*CHECKER_RADIUS;
+                    } else {
+                        y = FRAME_HEIGHT - BORDER_BOTTOM - (count-1)*2*CHECKER_RADIUS;
                     }
+                    displayChecker(player,x,y);
                 }
             }
-        }
-
-        if(currentPlayer == Player.playerBlue.getTurn()) {
-            for(int i = 0; i < 15; i++) {
-                if(pip == 25) {
-                    if(blueCheckers[i].getCircleX() == BAR[0][row].getX() && blueCheckers[i].getCircleY() == BAR[0][row].getY()) {
-                        toBeMoved = blueCheckers[i].getCircle();
-                        break;
-                    }
+            // Display Bear Off
+            for (int count = 1; count<=board.getNumCheckers(player, Board.BEAR_OFF); count++) {
+                x = FRAME_WIDTH - BORDER_RIGHT/2 - CHECKER_RADIUS;
+                if (player==0) {
+                    y = FRAME_HEIGHT - BORDER_BOTTOM - (count-1)*CHECKER_DEPTH;
+                } else {
+                    y = BORDER_TOP + (count-1)*CHECKER_DEPTH;
                 }
-
-                else {
-                    if(blueCheckers[i].getCircleX() == BOARD[column][row].getX() && blueCheckers[i].getCircleY() == BOARD[column][row].getY()) {
-                        toBeMoved = blueCheckers[i].getCircle();
-                        break;
-                    }
-                }
+                displayCheckerSide(player,x,y);
             }
+
         }
-        return toBeMoved;
+        displayCube();
+        displayScore();
     }
+
+    public void refresh() {
+        revalidate();
+        repaint();
+    }
+
 }
